@@ -16,6 +16,7 @@ export default function RootLayout() {
         <Stack.Screen name="wallet" />
         <Stack.Screen name="transactions" />
         <Stack.Screen name="notifications" />
+        <Stack.Screen name="spiritual-preferences" />
       </Stack>
     </>
   );
