@@ -12,6 +12,10 @@ export default function RootLayout() {
         <Stack.Screen name="astrologer-detail" />
         <Stack.Screen name="talk-to-expert" />
         <Stack.Screen name="consultation-confirm" />
+        <Stack.Screen name="personal-info" />
+        <Stack.Screen name="wallet" />
+        <Stack.Screen name="transactions" />
+        <Stack.Screen name="notifications" />
       </Stack>
     </>
   );
