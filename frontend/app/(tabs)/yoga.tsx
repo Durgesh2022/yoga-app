@@ -118,6 +118,7 @@ const PRIVATE_SESSIONS = [
 const DATES = ['Mon, 2 Dec', 'Tue, 3 Dec', 'Wed, 4 Dec', 'Thu, 5 Dec'];
 
 export default function YogaScreen() {
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('Classes');
   const [selectedDate, setSelectedDate] = useState('Mon, 2 Dec');
   const [modalVisible, setModalVisible] = useState(false);
