@@ -53,6 +53,7 @@ const PRICING_PACKAGES = [
     credits: 1,
     validity: '1 week',
     description: 'Your first step into Celestials',
+    location: 'New Delhi',
   },
   {
     id: 2,
@@ -81,6 +82,27 @@ const PRICING_PACKAGES = [
   },
 ];
 
+const PRIVATE_SESSIONS = [
+  {
+    id: 1,
+    name: '1 on 1 Class',
+    price: 5999,
+    credits: 10,
+    validity: '2 weeks',
+    description: 'Discover your unique yoga journey with a dedicated personal session.',
+    location: 'New Delhi',
+  },
+  {
+    id: 2,
+    name: '1 on 1 Sound therapy',
+    price: 7200,
+    credits: 12,
+    validity: '2 weeks',
+    description: 'Immerse yourself in harmony and relaxation with a private sound bath yoga experience. (This session is valid for two weeks from the date of purchase.)',
+    location: 'New Delhi',
+  },
+];
+
 const DATES = ['Mon, 2 Dec', 'Tue, 3 Dec', 'Wed, 4 Dec', 'Thu, 5 Dec'];
 
 export default function YogaScreen() {
@@ -89,6 +111,7 @@ export default function YogaScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(YOGA_CLASSES[0]);
   const [userCredits] = useState(6);
+  const [sessionType, setSessionType] = useState('Group class'); // Group class or Private Session
   
   // Consultation form states
   const [selectedGoal, setSelectedGoal] = useState('');
