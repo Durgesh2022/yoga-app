@@ -23,33 +23,25 @@ export default function ConsultationConfirmScreen() {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Yoga</Text>
-          <View style={styles.placeholder} />
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>Yoga</Text>
+            <Text style={styles.headerSubtitle}>Confirm your consultation</Text>
+          </View>
+          <View style={styles.freeBadge}>
+            <Ionicons name="star-outline" size={14} color="#60A5FA" />
+            <Text style={styles.freeBadgeText}>Consultation is free</Text>
+          </View>
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Free Badge */}
-          <View style={styles.topBadgeContainer}>
-            <View style={styles.freeBadge}>
-              <Ionicons name="gift" size={16} color="#4ADE80" />
-              <Text style={styles.freeBadgeText}>Consultation is free</Text>
-            </View>
-          </View>
-
-          {/* Title */}
-          <Text style={styles.mainTitle}>Confirm your consultation</Text>
-          <Text style={styles.subtitle}>
-            Your first consultation is completely free.
-          </Text>
-
-          {/* Consultation Details */}
+          {/* Consultation Details Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Talk to a consultant</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.back()}>
                 <Text style={styles.editLink}>Edit details</Text>
               </TouchableOpacity>
             </View>
@@ -61,52 +53,63 @@ export default function ConsultationConfirmScreen() {
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>When</Text>
-              <Text style={styles.detailValue}>This evening (6:00 PM - 10:00 PM)</Text>
+              <Text style={styles.detailValue}>This evening (6–10 PM)</Text>
             </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Consultant</Text>
-              <Text style={styles.detailValue}>Certified yoga guide</Text>
+            <View style={styles.consultantRow}>
+              <View style={styles.consultantAvatar}>
+                <Ionicons name="person" size={20} color="#60A5FA" />
+              </View>
+              <View style={styles.consultantInfo}>
+                <Text style={styles.consultantTitle}>Certified yoga guide</Text>
+                <Text style={styles.consultantDesc}>1:1 intro call to map your yoga journey</Text>
+              </View>
             </View>
-
-            <Text style={styles.subNote}>
-              1:1 intro call to map your yoga journey.
-            </Text>
           </View>
 
-          {/* Pricing */}
+          {/* Pricing Card */}
           <View style={styles.card}>
-            <Text style={styles.pricingLabel}>Total due now</Text>
-            <Text style={styles.totalPrice}>₹0</Text>
+            <View style={styles.pricingHeader}>
+              <Text style={styles.pricingLabel}>Total due now:</Text>
+              <View style={styles.priceRow}>
+                <Text style={styles.totalPrice}>₹0</Text>
+                <View style={styles.freeTag}>
+                  <Text style={styles.freeTagText}>Free consultation</Text>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.freeNote}>Your first consultation is completely free.</Text>
 
             <View style={styles.divider} />
 
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Consultation fee</Text>
-              <Text style={styles.priceValue}>₹0</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Consultation fee</Text>
+              <Text style={styles.detailValue}>₹0</Text>
             </View>
 
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Taxes & charges</Text>
-              <Text style={styles.priceValue}>₹0</Text>
-            </View>
-
-            <View style={styles.freeTag}>
-              <Text style={styles.freeTagText}>Free consultation</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Taxes & charges</Text>
+              <Text style={styles.detailValue}>₹0</Text>
             </View>
           </View>
 
-          {/* Contact Info */}
+          {/* Contact Info Card */}
           <View style={styles.card}>
-            <Text style={styles.contactTitle}>How we'll reach you</Text>
-            <Text style={styles.contactSubtitle}>From your profile</Text>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>How we'll reach you</Text>
+              <Text style={styles.fromProfile}>From your profile</Text>
+            </View>
 
-            <Text style={styles.whatsappText}>
-              We'll reach out on your saved WhatsApp number
+            <Text style={styles.contactDesc}>
+              We'll reach out on your saved WhatsApp number below. You can change it for this consultation if needed.
             </Text>
 
             <View style={styles.phoneRow}>
-              <Text style={styles.phoneNumber}>+91 98XXXXXX10</Text>
+              <View>
+                <Text style={styles.phoneLabel}>WhatsApp number</Text>
+                <Text style={styles.phoneNumber}>+91 98XXXXXX10</Text>
+              </View>
               <TouchableOpacity style={styles.changeButton}>
                 <Text style={styles.changeText}>Change</Text>
               </TouchableOpacity>
@@ -117,14 +120,14 @@ export default function ConsultationConfirmScreen() {
             </Text>
 
             <View style={styles.infoBox}>
-              <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
+              <View style={styles.greenDot} />
               <Text style={styles.infoText}>
                 No payment needed now. You'll only confirm the free call timing.
               </Text>
             </View>
           </View>
 
-          {/* Buttons */}
+          {/* Confirm Button */}
           <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmBooking}>
             <Text style={styles.confirmButtonText}>Confirm & book call</Text>
           </TouchableOpacity>
@@ -143,7 +146,7 @@ export default function ConsultationConfirmScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F5F8FA',
   },
   container: {
     flex: 1,
@@ -151,64 +154,55 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerCenter: {
+    flex: 1,
+    marginLeft: 8,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#000',
   },
-  placeholder: {
-    width: 24,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  topBadgeContainer: {
-    alignItems: 'center',
-    paddingVertical: 16,
+  headerSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
   },
   freeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 4,
   },
   freeBadgeText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#4ADE80',
+    color: '#60A5FA',
   },
-  mainTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 24,
+  scrollView: {
+    flex: 1,
   },
   card: {
     backgroundColor: '#FFF',
     marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    padding: 20,
+    borderRadius: 16,
+    marginTop: 16,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -223,39 +217,86 @@ const styles = StyleSheet.create({
   },
   editLink: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#f6cf92',
+    fontWeight: '500',
+    color: '#60A5FA',
+  },
+  fromProfile: {
+    fontSize: 12,
+    color: '#999',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   detailLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-    flex: 1,
-    textAlign: 'right',
+    fontWeight: '500',
+    color: '#333',
   },
-  subNote: {
+  consultantRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  consultantAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E8F4FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  consultantInfo: {
+    flex: 1,
+  },
+  consultantTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  consultantDesc: {
     fontSize: 13,
-    color: '#999',
-    marginTop: 4,
+    color: '#888',
+  },
+  pricingHeader: {
+    marginBottom: 8,
   },
   pricingLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#888',
     marginBottom: 8,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   totalPrice: {
     fontSize: 32,
     fontWeight: '700',
     color: '#000',
+  },
+  freeTag: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  freeTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#22C55E',
+  },
+  freeNote: {
+    fontSize: 13,
+    color: '#888',
     marginBottom: 16,
   },
   divider: {
@@ -263,57 +304,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
     marginBottom: 16,
   },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  priceLabel: {
+  contactDesc: {
     fontSize: 14,
     color: '#666',
-  },
-  priceValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
-  },
-  freeTag: {
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginTop: 8,
-  },
-  freeTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4ADE80',
-  },
-  contactTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 4,
-  },
-  contactSubtitle: {
-    fontSize: 13,
-    color: '#999',
+    lineHeight: 21,
     marginBottom: 16,
-  },
-  whatsappText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 12,
   },
   phoneRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8F8F8',
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: '#F8F9FA',
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 12,
+  },
+  phoneLabel: {
+    fontSize: 13,
+    color: '#888',
+    marginBottom: 4,
   },
   phoneNumber: {
     fontSize: 15,
@@ -321,43 +330,46 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   changeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#E8E8E8',
   },
   changeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#f6cf92',
+    color: '#333',
   },
   additionalInfo: {
     fontSize: 13,
-    color: '#999',
+    color: '#888',
     marginBottom: 16,
   },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F0FDF4',
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
+    gap: 10,
+  },
+  greenDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#22C55E',
+    marginTop: 5,
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
-    color: '#4ADE80',
-    lineHeight: 18,
+    fontSize: 14,
+    color: '#22C55E',
+    lineHeight: 20,
   },
   confirmButton: {
     marginHorizontal: 16,
-    backgroundColor: '#f6cf92',
+    marginTop: 24,
+    backgroundColor: '#60A5FA',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 12,
   },
   confirmButtonText: {
     fontSize: 16,
@@ -366,15 +378,14 @@ const styles = StyleSheet.create({
   },
   whyFreeButton: {
     alignItems: 'center',
-    paddingVertical: 12,
-    marginBottom: 16,
+    paddingVertical: 16,
   },
   whyFreeText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#f6cf92',
+    fontWeight: '500',
+    color: '#60A5FA',
   },
   bottomSpace: {
-    height: 20,
+    height: 30,
   },
 });
