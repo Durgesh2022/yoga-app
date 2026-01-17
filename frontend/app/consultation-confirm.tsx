@@ -14,132 +14,128 @@ export default function ConsultationConfirmScreen() {
   const router = useRouter();
 
   const handleConfirmBooking = () => {
-    // TODO: Implement booking confirmation logic
     console.log('Consultation confirmed');
-    // Navigate back to yoga tab or show success message
     router.push('/(tabs)/yoga');
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#333" />
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.title}>Yoga</Text>
+          <Text style={styles.headerTitle}>Yoga</Text>
           <View style={styles.placeholder} />
         </View>
 
-        {/* Free Badge */}
-        <View style={styles.freeBadgeContainer}>
-          <View style={styles.freeBadge}>
-            <Ionicons name="gift" size={16} color="#4ADE80" />
-            <Text style={styles.freeBadgeText}>Consultation is free</Text>
-          </View>
-        </View>
-
-        {/* Main Title */}
-        <Text style={styles.mainTitle}>Confirm your consultation</Text>
-        <Text style={styles.subtitle}>
-          Your first consultation is completely free.
-        </Text>
-
-        {/* Consultation Details Card */}
-        <View style={styles.detailsCard}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Talk to a consultant</Text>
-            <TouchableOpacity>
-              <Text style={styles.editLink}>Edit details</Text>
-            </TouchableOpacity>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Free Badge */}
+          <View style={styles.topBadgeContainer}>
+            <View style={styles.freeBadge}>
+              <Ionicons name="gift" size={16} color="#4ADE80" />
+              <Text style={styles.freeBadgeText}>Consultation is free</Text>
+            </View>
           </View>
 
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Format</Text>
-            <Text style={styles.detailValue}>Voice call (15 mins)</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>When</Text>
-            <Text style={styles.detailValue}>This evening (6:00 PM - 10:00 PM)</Text>
-          </View>
-
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Consultant</Text>
-            <Text style={styles.detailValue}>Certified yoga guide</Text>
-          </View>
-
-          <Text style={styles.consultantDesc}>
-            1:1 intro call to map your yoga journey.
+          {/* Title */}
+          <Text style={styles.mainTitle}>Confirm your consultation</Text>
+          <Text style={styles.subtitle}>
+            Your first consultation is completely free.
           </Text>
-        </View>
 
-        {/* Pricing Card */}
-        <View style={styles.pricingCard}>
-          <Text style={styles.pricingTitle}>Total due now</Text>
-          <Text style={styles.totalPrice}>₹0</Text>
+          {/* Consultation Details */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Talk to a consultant</Text>
+              <TouchableOpacity>
+                <Text style={styles.editLink}>Edit details</Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.divider} />
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Format</Text>
+              <Text style={styles.detailValue}>Voice call (15 mins)</Text>
+            </View>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Consultation fee</Text>
-            <Text style={styles.priceValue}>₹0</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>When</Text>
+              <Text style={styles.detailValue}>This evening (6:00 PM - 10:00 PM)</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Consultant</Text>
+              <Text style={styles.detailValue}>Certified yoga guide</Text>
+            </View>
+
+            <Text style={styles.subNote}>
+              1:1 intro call to map your yoga journey.
+            </Text>
           </View>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Taxes & charges</Text>
-            <Text style={styles.priceValue}>₹0</Text>
+          {/* Pricing */}
+          <View style={styles.card}>
+            <Text style={styles.pricingLabel}>Total due now</Text>
+            <Text style={styles.totalPrice}>₹0</Text>
+
+            <View style={styles.divider} />
+
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Consultation fee</Text>
+              <Text style={styles.priceValue}>₹0</Text>
+            </View>
+
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Taxes & charges</Text>
+              <Text style={styles.priceValue}>₹0</Text>
+            </View>
+
+            <View style={styles.freeTag}>
+              <Text style={styles.freeTagText}>Free consultation</Text>
+            </View>
           </View>
 
-          <View style={styles.freeConsultBadge}>
-            <Text style={styles.freeConsultText}>Free consultation</Text>
-          </View>
-        </View>
+          {/* Contact Info */}
+          <View style={styles.card}>
+            <Text style={styles.contactTitle}>How we'll reach you</Text>
+            <Text style={styles.contactSubtitle}>From your profile</Text>
 
-        {/* Contact Info Card */}
-        <View style={styles.contactCard}>
-          <Text style={styles.contactTitle}>How we'll reach you</Text>
-          <Text style={styles.contactSubtitle}>From your profile</Text>
-
-          <View style={styles.whatsappRow}>
-            <Text style={styles.whatsappLabel}>
+            <Text style={styles.whatsappText}>
               We'll reach out on your saved WhatsApp number
             </Text>
-          </View>
 
-          <View style={styles.phoneRow}>
-            <Text style={styles.phoneNumber}>+91 98XXXXXX10</Text>
-            <TouchableOpacity style={styles.changeButton}>
-              <Text style={styles.changeText}>Change</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.phoneRow}>
+              <Text style={styles.phoneNumber}>+91 98XXXXXX10</Text>
+              <TouchableOpacity style={styles.changeButton}>
+                <Text style={styles.changeText}>Change</Text>
+              </TouchableOpacity>
+            </View>
 
-          <Text style={styles.additionalInfo}>
-            We'll also use your saved name and email for reminders.
-          </Text>
-
-          <View style={styles.noPaymentBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
-            <Text style={styles.noPaymentText}>
-              No payment needed now. You'll only confirm the free call timing.
+            <Text style={styles.additionalInfo}>
+              We'll also use your saved name and email for reminders.
             </Text>
+
+            <View style={styles.infoBox}>
+              <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
+              <Text style={styles.infoText}>
+                No payment needed now. You'll only confirm the free call timing.
+              </Text>
+            </View>
           </View>
-        </View>
 
-        {/* Action Buttons */}
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmBooking}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.confirmButtonText}>Confirm & book call</Text>
-        </TouchableOpacity>
+          {/* Buttons */}
+          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmBooking}>
+            <Text style={styles.confirmButtonText}>Confirm & book call</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.whyFreeButton}>
-          <Text style={styles.whyFreeText}>Why is this consultation free?</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity style={styles.whyFreeButton}>
+            <Text style={styles.whyFreeText}>Why is this consultation free?</Text>
+          </TouchableOpacity>
+
+          <View style={styles.bottomSpace} />
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -147,7 +143,7 @@ export default function ConsultationConfirmScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFF',
   },
   container: {
     flex: 1,
@@ -156,25 +152,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
+  headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: '600',
+    color: '#000',
   },
   placeholder: {
-    width: 40,
+    width: 24,
   },
-  freeBadgeContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  topBadgeContainer: {
     alignItems: 'center',
     paddingVertical: 16,
   },
@@ -195,7 +189,7 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
     textAlign: 'center',
     paddingHorizontal: 20,
     marginBottom: 8,
@@ -207,12 +201,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
-  detailsCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 16,
+  card: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -223,12 +219,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
   },
   editLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5DADE2',
+    color: '#f6cf92',
   },
   detailRow: {
     flexDirection: 'row',
@@ -242,23 +238,16 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#000',
     flex: 1,
     textAlign: 'right',
   },
-  consultantDesc: {
+  subNote: {
     fontSize: 13,
     color: '#999',
-    marginTop: 8,
+    marginTop: 4,
   },
-  pricingCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  pricingTitle: {
+  pricingLabel: {
     fontSize: 14,
     color: '#666',
     marginBottom: 8,
@@ -266,12 +255,12 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
     marginBottom: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E8E8E8',
+    backgroundColor: '#F0F0F0',
     marginBottom: 16,
   },
   priceRow: {
@@ -286,9 +275,9 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#000',
   },
-  freeConsultBadge: {
+  freeTag: {
     backgroundColor: '#F0FDF4',
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -296,22 +285,15 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 8,
   },
-  freeConsultText: {
+  freeTagText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#4ADE80',
   },
-  contactCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-  },
   contactTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
     marginBottom: 4,
   },
   contactSubtitle: {
@@ -319,12 +301,10 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 16,
   },
-  whatsappRow: {
-    marginBottom: 12,
-  },
-  whatsappLabel: {
+  whatsappText: {
     fontSize: 14,
     color: '#666',
+    marginBottom: 12,
   },
   phoneRow: {
     flexDirection: 'row',
@@ -338,7 +318,7 @@ const styles = StyleSheet.create({
   phoneNumber: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: '#000',
   },
   changeButton: {
     paddingHorizontal: 12,
@@ -350,14 +330,14 @@ const styles = StyleSheet.create({
   changeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#5DADE2',
+    color: '#f6cf92',
   },
   additionalInfo: {
     fontSize: 13,
     color: '#999',
     marginBottom: 16,
   },
-  noPaymentBadge: {
+  infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: '#F0FDF4',
@@ -365,33 +345,36 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 8,
   },
-  noPaymentText: {
+  infoText: {
     flex: 1,
     fontSize: 13,
     color: '#4ADE80',
     lineHeight: 18,
   },
   confirmButton: {
+    marginHorizontal: 16,
     backgroundColor: '#f6cf92',
-    marginHorizontal: 20,
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: 'center',
     marginBottom: 12,
   },
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#FFF',
   },
   whyFreeButton: {
     alignItems: 'center',
     paddingVertical: 12,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   whyFreeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5DADE2',
+    color: '#f6cf92',
+  },
+  bottomSpace: {
+    height: 20,
   },
 });

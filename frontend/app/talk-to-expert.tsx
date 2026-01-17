@@ -10,14 +10,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TalkToExpertScreen() {
   const router = useRouter();
   const [connectionMethod, setConnectionMethod] = useState('Voice call (15 min)');
   const [scheduleTiming, setScheduleTiming] = useState('This evening (6-10 PM)');
   const [contextText, setContextText] = useState('');
-  const [userCredits] = useState(6);
 
   const handleConfirmConsultation = () => {
     router.push('/consultation-confirm');
@@ -25,151 +23,164 @@ export default function TalkToExpertScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#333" />
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <Text style={styles.title}>Yoga</Text>
-            <Text style={styles.subtitle}>Talk to an expert</Text>
+            <Text style={styles.headerTitle}>Yoga</Text>
+            <Text style={styles.headerSubtitle}>Talk to an expert</Text>
           </View>
-          <View style={styles.creditsContainer}>
+          <View style={styles.creditsBox}>
             <Ionicons name="star" size={14} color="#f6cf92" />
-            <Text style={styles.creditsText}>{userCredits}</Text>
+            <Text style={styles.creditsText}>6</Text>
           </View>
         </View>
 
-        {/* Expert Info Card */}
-        <View style={styles.expertCard}>
-          <Text style={styles.consultationType}>1:1 consultation call</Text>
-          <Text style={styles.consultationDesc}>
-            Get personalized guidance from a yoga expert who'll help you find the right practice for your body and goals.
-          </Text>
-          
-          <View style={styles.expertProfile}>
-            <View style={styles.expertAvatar}>
-              <Ionicons name="person" size={32} color="#f6cf92" />
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Consultation Info */}
+          <View style={styles.infoCard}>
+            <Text style={styles.infoTitle}>1:1 consultation call</Text>
+            <Text style={styles.infoDesc}>
+              Get personalized guidance from a yoga expert who'll help you find the right practice for your body and goals.
+            </Text>
+            
+            <View style={styles.expertRow}>
+              <View style={styles.expertAvatar}>
+                <Ionicons name="person" size={28} color="#999" />
+              </View>
+              <View style={styles.expertInfo}>
+                <Text style={styles.expertTitle}>Certified yoga therapist</Text>
+                <Text style={styles.expertTags}>Trauma-aware & beginner friendly</Text>
+                <Text style={styles.expertAvailable}>Available today</Text>
+              </View>
             </View>
-            <View style={styles.expertInfo}>
-              <Text style={styles.expertTitle}>Certified yoga therapist</Text>
-              <Text style={styles.expertTags}>Trauma-aware & beginner friendly</Text>
-              <Text style={styles.availability}>Available today</Text>
+
+            <View style={styles.freeBox}>
+              <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
+              <Text style={styles.freeText}>Consultation is free</Text>
             </View>
           </View>
 
-          <View style={styles.freeBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
-            <Text style={styles.freeText}>Consultation is free</Text>
-          </View>
-        </View>
-
-        {/* Connection Method */}
-        <View style={styles.section}>
-          <Text style={styles.questionTitle}>How would you like to connect?</Text>
-          <View style={styles.optionsColumn}>
+          {/* How to connect */}
+          <View style={styles.section}>
+            <Text style={styles.questionLabel}>How would you like to connect?</Text>
             {['Text + voice notes', 'Voice call (15 min)', 'Video call (20 min)'].map((method) => (
               <TouchableOpacity
                 key={method}
-                style={[styles.optionButton, connectionMethod === method && styles.selectedOption]}
+                style={[
+                  styles.optionButton,
+                  connectionMethod === method && styles.optionSelected,
+                ]}
                 onPress={() => setConnectionMethod(method)}
-                activeOpacity={0.7}
               >
-                <Text style={[styles.optionText, connectionMethod === method && styles.selectedOptionText]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    connectionMethod === method && styles.optionTextSelected,
+                  ]}
+                >
                   {method}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
 
-        {/* Scheduling */}
-        <View style={styles.section}>
-          <Text style={styles.questionTitle}>When do you want to schedule it?</Text>
-          <View style={styles.optionsColumn}>
+          {/* When to schedule */}
+          <View style={styles.section}>
+            <Text style={styles.questionLabel}>When do you want to schedule it?</Text>
             {['Within 30 mins', 'This evening (6-10 PM)', 'Tomorrow morning', 'Share my own time'].map((timing) => (
               <TouchableOpacity
                 key={timing}
-                style={[styles.optionButton, scheduleTiming === timing && styles.selectedOption]}
+                style={[
+                  styles.optionButton,
+                  scheduleTiming === timing && styles.optionSelected,
+                ]}
                 onPress={() => setScheduleTiming(timing)}
-                activeOpacity={0.7}
               >
-                <Text style={[styles.optionText, scheduleTiming === timing && styles.selectedOptionText]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    scheduleTiming === timing && styles.optionTextSelected,
+                  ]}
+                >
                   {timing}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </View>
 
-        {/* Context Input */}
-        <View style={styles.section}>
-          <Text style={styles.questionTitle}>Anything you want them to know first?</Text>
-          <Text style={styles.inputLabel}>Give a short context <Text style={styles.optional}>Optional</Text></Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Eg. I have lower back pain, sit at a desk all day, tried a few YouTube classes but felt overwhelmed."
-            placeholderTextColor="#999"
-            multiline
-            numberOfLines={4}
-            maxLength={200}
-            value={contextText}
-            onChangeText={setContextText}
-          />
-          <Text style={styles.charCount}>{contextText.length}/200</Text>
-        </View>
-
-        {/* What to Expect */}
-        <View style={styles.expectSection}>
-          <Text style={styles.expectTitle}>What to expect during the call</Text>
-          <Text style={styles.duration}>Takes ~15 mins</Text>
-          
-          <View style={styles.expectList}>
-            <View style={styles.expectItem}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.expectText}>
-                Deep dive into reasons for seeking yoga, past injuries/conditions.
-              </Text>
-            </View>
-            <View style={styles.expectItem}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.expectText}>
-                Discussion of previous experience with yoga/meditation, time availability.
-              </Text>
-            </View>
-            <View style={styles.expectItem}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.expectText}>
-                Decision on practice types (Hatha, Yin, Restorative, chair-based, breath-focused).
-              </Text>
-            </View>
-            <View style={styles.expectItem}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.expectText}>
-                Outcome: 1-3 class recommendations, safe frequency, tips for listening to the body.
-              </Text>
-            </View>
+          {/* Context */}
+          <View style={styles.section}>
+            <Text style={styles.questionLabel}>Anything you want them to know first?</Text>
+            <Text style={styles.inputSubLabel}>
+              Give a short context <Text style={styles.optional}>Optional</Text>
+            </Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Eg. I have lower back pain, sit at a desk all day, tried a few YouTube classes but felt overwhelmed."
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={4}
+              maxLength={200}
+              value={contextText}
+              onChangeText={setContextText}
+              textAlignVertical="top"
+            />
+            <Text style={styles.charCount}>{contextText.length}/200</Text>
           </View>
 
-          <Text style={styles.guidance}>
-            Have a quiet space, any relevant medical notes, and your usual daily schedule in mind so your consultant can tailor things to you.
-          </Text>
-        </View>
+          {/* What to expect */}
+          <View style={styles.expectCard}>
+            <Text style={styles.expectTitle}>What to expect during the call</Text>
+            <Text style={styles.expectDuration}>Takes ~15 mins</Text>
+            
+            <View style={styles.expectList}>
+              <View style={styles.expectItem}>
+                <View style={styles.bulletDot} />
+                <Text style={styles.expectText}>
+                  Deep dive into reasons for seeking yoga, past injuries/conditions.
+                </Text>
+              </View>
+              <View style={styles.expectItem}>
+                <View style={styles.bulletDot} />
+                <Text style={styles.expectText}>
+                  Discussion of previous experience with yoga/meditation, time availability.
+                </Text>
+              </View>
+              <View style={styles.expectItem}>
+                <View style={styles.bulletDot} />
+                <Text style={styles.expectText}>
+                  Decision on practice types (Hatha, Yin, Restorative, chair-based, breath-focused).
+                </Text>
+              </View>
+              <View style={styles.expectItem}>
+                <View style={styles.bulletDot} />
+                <Text style={styles.expectText}>
+                  Outcome: 1-3 class recommendations, safe frequency, tips for listening to the body.
+                </Text>
+              </View>
+            </View>
 
-        {/* Action Buttons */}
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmConsultation}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.confirmButtonText}>Confirm consultation</Text>
-        </TouchableOpacity>
+            <Text style={styles.expectNote}>
+              Have a quiet space, any relevant medical notes, and your usual daily schedule in mind so your consultant can tailor things to you.
+            </Text>
+          </View>
 
-        <TouchableOpacity style={styles.creditsLink}>
-          <Text style={styles.creditsLinkText}>See how credits work</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          {/* Buttons */}
+          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmConsultation}>
+            <Text style={styles.confirmButtonText}>Confirm consultation</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.creditsLink}>
+            <Text style={styles.creditsLinkText}>See how credits work</Text>
+          </TouchableOpacity>
+
+          <View style={styles.bottomSpace} />
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -177,7 +188,7 @@ export default function TalkToExpertScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFF',
   },
   container: {
     flex: 1,
@@ -186,37 +197,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   headerCenter: {
     flex: 1,
     alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
   },
-  subtitle: {
-    fontSize: 13,
+  headerSubtitle: {
+    fontSize: 12,
     color: '#666',
     marginTop: 2,
   },
-  creditsContainer: {
+  creditsBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF9F0',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 12,
     gap: 4,
   },
   creditsText: {
@@ -224,46 +230,48 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#f6cf92',
   },
-  expertCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 16,
-    padding: 20,
-    borderRadius: 16,
+  scrollView: {
+    flex: 1,
   },
-  consultationType: {
+  infoCard: {
+    padding: 16,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  infoTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
     marginBottom: 8,
   },
-  consultationDesc: {
+  infoDesc: {
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
     marginBottom: 16,
   },
-  expertProfile: {
+  expertRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   expertAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFF9F0',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   expertInfo: {
     flex: 1,
+    justifyContent: 'center',
   },
   expertTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: '600',
+    color: '#000',
     marginBottom: 4,
   },
   expertTags: {
@@ -271,12 +279,12 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
-  availability: {
+  expertAvailable: {
     fontSize: 13,
     color: '#4ADE80',
     fontWeight: '600',
   },
-  freeBadge: {
+  freeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F0FDF4',
@@ -292,59 +300,54 @@ const styles = StyleSheet.create({
     color: '#4ADE80',
   },
   section: {
-    paddingHorizontal: 20,
-    marginTop: 24,
+    padding: 16,
   },
-  questionTitle: {
+  questionLabel: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: '600',
+    color: '#000',
     marginBottom: 12,
   },
-  optionsColumn: {
-    gap: 10,
-  },
   optionButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
     borderWidth: 1.5,
     borderColor: '#E8E8E8',
+    marginBottom: 10,
   },
-  selectedOption: {
+  optionSelected: {
     backgroundColor: '#E8F4F8',
-    borderColor: '#5DADE2',
+    borderColor: '#f6cf92',
   },
   optionText: {
     fontSize: 15,
-    fontWeight: '500',
     color: '#666',
   },
-  selectedOptionText: {
-    color: '#5DADE2',
+  optionTextSelected: {
+    color: '#f6cf92',
     fontWeight: '600',
   },
-  inputLabel: {
+  inputSubLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: '500',
+    color: '#000',
     marginBottom: 8,
   },
   optional: {
     color: '#999',
     fontWeight: '400',
   },
-  textArea: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+  textInput: {
     borderWidth: 1,
     borderColor: '#E8E8E8',
+    borderRadius: 12,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: '#000',
     minHeight: 100,
-    textAlignVertical: 'top',
+    backgroundColor: '#FFF',
   },
   charCount: {
     fontSize: 12,
@@ -352,20 +355,17 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginTop: 4,
   },
-  expectSection: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 24,
-    padding: 20,
-    borderRadius: 16,
+  expectCard: {
+    padding: 16,
+    backgroundColor: '#FFF',
   },
   expectTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
-    marginBottom: 6,
+    color: '#000',
+    marginBottom: 4,
   },
-  duration: {
+  expectDuration: {
     fontSize: 13,
     color: '#999',
     marginBottom: 16,
@@ -391,33 +391,36 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
-  guidance: {
+  expectNote: {
     fontSize: 13,
     color: '#666',
     lineHeight: 19,
     fontStyle: 'italic',
   },
   confirmButton: {
+    marginHorizontal: 16,
+    marginTop: 8,
     backgroundColor: '#f6cf92',
-    marginHorizontal: 20,
-    marginTop: 24,
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: 'center',
   },
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#FFF',
   },
   creditsLink: {
     alignItems: 'center',
     paddingVertical: 16,
-    marginBottom: 24,
+    marginHorizontal: 16,
   },
   creditsLinkText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5DADE2',
+    color: '#f6cf92',
+  },
+  bottomSpace: {
+    height: 20,
   },
 });
