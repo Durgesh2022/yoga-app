@@ -1,0 +1,44 @@
+diff --git a/frontend/components/BookingModal.tsx b/frontend/components/BookingModal.tsx
+index 5e5f72f..1494970 100644
+--- a/frontend/components/BookingModal.tsx
++++ b/frontend/components/BookingModal.tsx
+@@ -115,7 +115,7 @@ export default function BookingModal({
+ const styles = StyleSheet.create({
+   modalOverlay: {
+     flex: 1,
+-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
++    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+     justifyContent: 'flex-end',
+   },
+   modalContent: {
+@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
+     borderTopLeftRadius: 24,
+     borderTopRightRadius: 24,
+     paddingHorizontal: 20,
+-    paddingTop: 20,
+-    paddingBottom: 32,
++    paddingTop: 24,
++    paddingBottom: 36,
+     maxHeight: '85%',
+   },
+   modalHeader: {
+@@ -134,12 +134,18 @@ const styles = StyleSheet.create({
+     marginBottom: 24,
+   },
+   modalTitle: {
+-    fontSize: 20,
++    fontSize: 22,
+     fontWeight: '700',
+     color: '#333',
+   },
+   closeButton: {
+     padding: 4,
++    width: 36,
++    height: 36,
++    borderRadius: 18,
++    backgroundColor: '#F5F5F5',
++    alignItems: 'center',
++    justifyContent: 'center',
+   },
+   section: {
+     marginBottom: 24,
