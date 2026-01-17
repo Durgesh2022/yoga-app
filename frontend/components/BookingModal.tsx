@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   creditText: {
     fontSize: 12,
-    color: '#5DADE2',
+    color: '#f6cf92',
     fontWeight: '500',
   },
   paymentRow: {
