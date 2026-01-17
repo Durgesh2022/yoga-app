@@ -72,8 +72,6 @@ export default function LoginScreen() {
                   style={styles.input}
                   placeholder="Enter email or phone"
                   placeholderTextColor="#999"
-                  value={email}
-                  onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
@@ -87,20 +85,11 @@ export default function LoginScreen() {
                     style={styles.passwordInput}
                     placeholder="Enter password"
                     placeholderTextColor="#999"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
+                    secureTextEntry={true}
                   />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                    style={styles.eyeIcon}
-                  >
-                    <Ionicons
-                      name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                      size={24}
-                      color="#999"
-                    />
-                  </TouchableOpacity>
+                  <View style={styles.eyeIcon}>
+                    <Ionicons name="eye-off-outline" size={24} color="#999" />
+                  </View>
                 </View>
               </View>
 
