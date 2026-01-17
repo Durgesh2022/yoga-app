@@ -85,7 +85,7 @@ export default function BookingModal({
             {/* Credits Display */}
             <View style={styles.creditsContainer}>
               <View style={styles.creditsLeft}>
-                <Ionicons name="star" size={16} color="#5DADE2" />
+                <Ionicons name="star" size={16} color="#f6cf92" />
                 <Text style={styles.creditsText}>Credits: {userCredits}</Text>
               </View>
               <TouchableOpacity>
