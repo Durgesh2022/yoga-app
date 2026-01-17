@@ -15,17 +15,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   const router = useRouter();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleLogin = () => {
-    // TODO: Implement login logic
-    console.log('Login:', email, password);
+  const handleSignup = () => {
+    // TODO: Implement signup logic
+    console.log('Signup:', name, email, password);
   };
 
   return (
@@ -42,10 +44,13 @@ export default function LoginScreen() {
           >
             {/* Header */}
             <View style={styles.header}>
-              <TouchableOpacity style={styles.backButton}>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
                 <Ionicons name="arrow-back" size={24} color="#333" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>Login</Text>
+              <Text style={styles.headerTitle}>Sign up</Text>
               <View style={styles.placeholder} />
             </View>
 
@@ -62,14 +67,27 @@ export default function LoginScreen() {
 
             {/* Welcome Text */}
             <View style={styles.welcomeContainer}>
-              <Text style={styles.welcomeTitle}>Your journey to heal starts here</Text>
+              <Text style={styles.welcomeTitle}>Begin your healing journey</Text>
               <Text style={styles.welcomeSubtitle}>
-                Align your energy with the stars through astrology, yoga and reiki all in one calm space.
+                Create your account and discover inner peace through celestial wisdom.
               </Text>
             </View>
 
             {/* Form */}
             <View style={styles.formContainer}>
+              {/* Name Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Full name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your full name"
+                  placeholderTextColor="#999"
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                />
+              </View>
+
               {/* Email Input */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email or phone</Text>
@@ -90,7 +108,7 @@ export default function LoginScreen() {
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={styles.passwordInput}
-                    placeholder="Enter password"
+                    placeholder="Create password"
                     placeholderTextColor="#999"
                     value={password}
                     onChangeText={setPassword}
@@ -109,22 +127,38 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* Login Button */}
-              <TouchableOpacity
-                style={styles.loginButton}
-                onPress={handleLogin}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.loginButtonText}>Login</Text>
-              </TouchableOpacity>
+              {/* Confirm Password Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Confirm password</Text>
+                <View style={styles.passwordContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="Confirm your password"
+                    placeholderTextColor="#999"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeIcon}
+                  >
+                    <Ionicons
+                      name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                      size={24}
+                      color="#999"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
 
               {/* Sign Up Button */}
               <TouchableOpacity
                 style={styles.signupButton}
-                onPress={() => router.push('/signup')}
+                onPress={handleSignup}
                 activeOpacity={0.8}
               >
-                <Text style={styles.signupButtonText}>Sign up</Text>
+                <Text style={styles.signupButtonText}>Create Account</Text>
               </TouchableOpacity>
 
               {/* Divider */}
@@ -147,10 +181,13 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Forgot Password */}
-              <TouchableOpacity style={styles.forgotPasswordContainer}>
-                <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-              </TouchableOpacity>
+              {/* Login Link */}
+              <View style={styles.loginLinkContainer}>
+                <Text style={styles.loginLinkText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => router.back()}>
+                  <Text style={styles.loginLink}>Login</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -195,13 +232,13 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
     marginBottom: 24,
   },
   logoCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: '#FFF9F0',
     alignItems: 'center',
     justifyContent: 'center',
@@ -212,11 +249,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   logo: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
   },
   welcomeContainer: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
   welcomeTitle: {
     fontSize: 24,
@@ -237,7 +274,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
@@ -273,7 +310,7 @@ const styles = StyleSheet.create({
   eyeIcon: {
     paddingHorizontal: 12,
   },
-  loginButton: {
+  signupButton: {
     backgroundColor: '#f6cf92',
     borderRadius: 12,
     paddingVertical: 16,
@@ -286,28 +323,15 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  signupButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#f6cf92',
-  },
   signupButtonText: {
-    color: '#f6cf92',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
@@ -341,13 +365,19 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  forgotPasswordContainer: {
+  loginLinkContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 24,
   },
-  forgotPasswordText: {
+  loginLinkText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  loginLink: {
     fontSize: 14,
     color: '#f6cf92',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });
