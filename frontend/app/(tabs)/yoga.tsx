@@ -122,6 +122,9 @@ export default function YogaScreen() {
   const [selectedClass, setSelectedClass] = useState(YOGA_CLASSES[0]);
   const [userCredits] = useState(6);
   const [sessionType, setSessionType] = useState('Group class'); // Group class or Private Session
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState('UPI');
   
   // Consultation form states
   const [selectedGoal, setSelectedGoal] = useState('');
@@ -131,6 +134,11 @@ export default function YogaScreen() {
   const handleBookClass = (yogaClass: typeof YOGA_CLASSES[0]) => {
     setSelectedClass(yogaClass);
     setModalVisible(true);
+  };
+
+  const handleBuyPackage = (pkg: any) => {
+    setSelectedPackage(pkg);
+    setConfirmModalVisible(true);
   };
 
   const renderClassesTab = () => (
