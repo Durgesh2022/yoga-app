@@ -618,9 +618,46 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   // Pricing Tab Styles
+  pricingContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  sidebarContainer: {
+    width: 140,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRightWidth: 1,
+    borderRightColor: '#F0F0F0',
+  },
+  sidebarTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+  sidebarOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  sidebarOptionActive: {
+    backgroundColor: '#FFF9F0',
+  },
+  sidebarOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+  },
+  sidebarOptionTextActive: {
+    color: '#f6cf92',
+    fontWeight: '700',
+  },
   pricingScroll: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 16,
   },
   pricingHeader: {
@@ -628,7 +665,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginBottom: 16,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
   },
   creditInfo: {
     fontSize: 14,
@@ -666,7 +703,7 @@ const styles = StyleSheet.create({
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
@@ -676,18 +713,41 @@ const styles = StyleSheet.create({
     color: '#f6cf92',
   },
   creditPack: {
+    alignItems: 'flex-end',
+  },
+  creditPackLabel: {
+    fontSize: 11,
+    color: '#999',
+    marginBottom: 4,
+  },
+  creditBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF9F0',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
     gap: 4,
   },
   creditPackText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#f6cf92',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 12,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    fontSize: 13,
+    color: '#666',
   },
   validityRow: {
     flexDirection: 'row',
@@ -703,6 +763,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#999',
     marginBottom: 16,
+    lineHeight: 18,
   },
   buyButton: {
     backgroundColor: '#f6cf92',
