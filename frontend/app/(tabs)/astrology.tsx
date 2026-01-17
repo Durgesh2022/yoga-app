@@ -20,6 +20,7 @@ const ASTROLOGERS = [
 ];
 
 export default function AstrologyScreen() {
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('Pricing');
 
   return (
