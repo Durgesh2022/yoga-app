@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import BookingModal from '@/components/BookingModal';
+import PackageConfirmModal from '@/components/PackageConfirmModal';
 
 const YOGA_CLASSES = [
   {
