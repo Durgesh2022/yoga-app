@@ -453,7 +453,11 @@ export default function YogaScreen() {
         </LinearGradient>
       </View>
 
-      <TouchableOpacity style={styles.generateButton} activeOpacity={0.8}>
+      <TouchableOpacity 
+        style={styles.generateButton} 
+        activeOpacity={0.8}
+        onPress={() => router.push('/talk-to-expert')}
+      >
         <Text style={styles.generateButtonText}>Generate my yoga plan</Text>
       </TouchableOpacity>
 
