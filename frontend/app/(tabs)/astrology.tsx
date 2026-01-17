@@ -92,7 +92,12 @@ export default function AstrologyScreen() {
           <Text style={styles.astrologersTitle}>Top Astrologers</Text>
           <View style={styles.astrologersGrid}>
             {ASTROLOGERS.map((astrologer) => (
-              <TouchableOpacity key={astrologer.id} style={styles.astrologerCard} activeOpacity={0.8}>
+              <TouchableOpacity 
+                key={astrologer.id} 
+                style={styles.astrologerCard} 
+                activeOpacity={0.8}
+                onPress={() => router.push('/astrologer-detail')}
+              >
                 <View style={styles.astrologerHeader}>
                   <View style={styles.astrologerAvatar}>
                     <Ionicons name="person" size={32} color="#f6cf92" />
