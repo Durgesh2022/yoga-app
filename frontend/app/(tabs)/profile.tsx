@@ -22,7 +22,7 @@ const MENU_SECTIONS = [
   {
     title: 'Spiritual profile',
     items: [
-      { id: 3, label: 'Spiritual preferences', icon: 'heart-outline', color: '#F472B6', route: null },
+      { id: 3, label: 'Spiritual preferences', icon: 'heart-outline', color: '#F472B6', route: '/spiritual-preferences' },
       { id: 4, label: 'My sessions', icon: 'calendar-outline', color: '#60A5FA', route: null },
     ],
   },
