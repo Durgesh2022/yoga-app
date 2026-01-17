@@ -120,7 +120,12 @@ export default function ProfileScreen() {
           <View key={index} style={styles.menuSection}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             {section.items.map((item) => (
-              <TouchableOpacity key={item.id} style={styles.menuItem} activeOpacity={0.7}>
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.menuItem} 
+                activeOpacity={0.7}
+                onPress={() => handleMenuItemPress(item.route)}
+              >
                 <View style={styles.menuItemLeft}>
                   <View style={[styles.iconContainer, { backgroundColor: `${item.color}15` }]}>
                     <Ionicons name={item.icon as any} size={20} color={item.color} />
