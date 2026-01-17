@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   addCreditsText: {
     fontSize: 14,
-    color: '#5DADE2',
+    color: '#f6cf92',
     fontWeight: '500',
   },
   actionButtons: {
