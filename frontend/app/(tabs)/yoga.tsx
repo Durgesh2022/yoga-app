@@ -781,28 +781,58 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
+    zIndex: 1,
   },
   discountText: {
     fontSize: 11,
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   packageName: {
     fontSize: 18,
     fontWeight: '700',
     color: '#333',
-    marginBottom: 12,
+    flex: 1,
+  },
+  freeBadge: {
+    backgroundColor: '#4ADE80',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  freeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  sectionHeading: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  priceSection: {
+    marginBottom: 16,
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
   },
   packagePrice: {
     fontSize: 24,
     fontWeight: '700',
     color: '#f6cf92',
+  },
+  creditSection: {
+    marginBottom: 16,
   },
   creditPack: {
     alignItems: 'flex-end',
@@ -817,14 +847,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFF9F0',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: 8,
     gap: 4,
+    alignSelf: 'flex-start',
   },
   creditPackText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#f6cf92',
+  },
+  validitySection: {
+    marginBottom: 16,
+  },
+  locationSection: {
+    marginBottom: 16,
+  },
+  descriptionSection: {
+    marginBottom: 16,
   },
   detailsRow: {
     flexDirection: 'row',
@@ -835,7 +875,7 @@ const styles = StyleSheet.create({
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   detailText: {
     fontSize: 13,
@@ -853,9 +893,8 @@ const styles = StyleSheet.create({
   },
   packageDesc: {
     fontSize: 13,
-    color: '#999',
-    marginBottom: 16,
-    lineHeight: 18,
+    color: '#666',
+    lineHeight: 19,
   },
   buyButton: {
     backgroundColor: '#f6cf92',
