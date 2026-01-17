@@ -248,30 +248,60 @@ export default function YogaScreen() {
                   <Text style={styles.discountText}>{pkg.discount}</Text>
                 </View>
               )}
-              <Text style={styles.packageName}>{pkg.name}</Text>
-              <View style={styles.priceRow}>
-                <Text style={styles.packagePrice}>₹{pkg.price.toLocaleString()}</Text>
-                <View style={styles.creditPack}>
-                  <Text style={styles.creditPackLabel}>Credit Pack</Text>
-                  <View style={styles.creditBadge}>
-                    <Ionicons name="star" size={12} color="#f6cf92" />
-                    <Text style={styles.creditPackText}>{pkg.credits} credits</Text>
+              
+              {/* Package Header */}
+              <View style={styles.cardHeader}>
+                <Text style={styles.packageName}>{pkg.name}</Text>
+                {pkg.showFree && (
+                  <View style={styles.freeBadge}>
+                    <Text style={styles.freeText}>FREE</Text>
                   </View>
+                )}
+              </View>
+              
+              {/* Price Section */}
+              <View style={styles.priceSection}>
+                <Text style={styles.sectionHeading}>Price</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.packagePrice}>₹{pkg.price.toLocaleString()}</Text>
                 </View>
               </View>
-              <View style={styles.detailsRow}>
+              
+              {/* Credit Pack Section */}
+              <View style={styles.creditSection}>
+                <Text style={styles.sectionHeading}>Credit Pack</Text>
+                <View style={styles.creditBadge}>
+                  <Ionicons name="star" size={12} color="#f6cf92" />
+                  <Text style={styles.creditPackText}>{pkg.credits} {pkg.credits === 1 ? 'credit' : 'credits'}</Text>
+                </View>
+              </View>
+              
+              {/* Validity Section */}
+              <View style={styles.validitySection}>
+                <Text style={styles.sectionHeading}>Validity</Text>
                 <View style={styles.detailItem}>
                   <Ionicons name="time-outline" size={14} color="#666" />
                   <Text style={styles.detailText}>{pkg.validity}</Text>
                 </View>
-                {pkg.location && (
+              </View>
+              
+              {/* Location Section */}
+              {pkg.location && (
+                <View style={styles.locationSection}>
+                  <Text style={styles.sectionHeading}>Location</Text>
                   <View style={styles.detailItem}>
                     <Ionicons name="location-outline" size={14} color="#666" />
                     <Text style={styles.detailText}>{pkg.location}</Text>
                   </View>
-                )}
+                </View>
+              )}
+              
+              {/* Description Section */}
+              <View style={styles.descriptionSection}>
+                <Text style={styles.sectionHeading}>Description</Text>
+                <Text style={styles.packageDesc}>{pkg.description}</Text>
               </View>
-              <Text style={styles.packageDesc}>{pkg.description}</Text>
+              
               <TouchableOpacity 
                 style={styles.buyButton} 
                 activeOpacity={0.8}
@@ -284,28 +314,52 @@ export default function YogaScreen() {
         ) : (
           PRIVATE_SESSIONS.map((session) => (
             <View key={session.id} style={styles.pricingCard}>
-              <Text style={styles.packageName}>{session.name}</Text>
-              <View style={styles.priceRow}>
-                <Text style={styles.packagePrice}>₹{session.price.toLocaleString()}</Text>
-                <View style={styles.creditPack}>
-                  <Text style={styles.creditPackLabel}>Credit Pack</Text>
-                  <View style={styles.creditBadge}>
-                    <Ionicons name="star" size={12} color="#f6cf92" />
-                    <Text style={styles.creditPackText}>{session.credits} credits</Text>
-                  </View>
+              {/* Package Header */}
+              <View style={styles.cardHeader}>
+                <Text style={styles.packageName}>{session.name}</Text>
+              </View>
+              
+              {/* Price Section */}
+              <View style={styles.priceSection}>
+                <Text style={styles.sectionHeading}>Price</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.packagePrice}>₹{session.price.toLocaleString()}</Text>
                 </View>
               </View>
-              <View style={styles.detailsRow}>
+              
+              {/* Credit Pack Section */}
+              <View style={styles.creditSection}>
+                <Text style={styles.sectionHeading}>Credit Pack</Text>
+                <View style={styles.creditBadge}>
+                  <Ionicons name="star" size={12} color="#f6cf92" />
+                  <Text style={styles.creditPackText}>{session.credits} credits</Text>
+                </View>
+              </View>
+              
+              {/* Validity Section */}
+              <View style={styles.validitySection}>
+                <Text style={styles.sectionHeading}>Validity</Text>
                 <View style={styles.detailItem}>
                   <Ionicons name="time-outline" size={14} color="#666" />
                   <Text style={styles.detailText}>{session.validity}</Text>
                 </View>
+              </View>
+              
+              {/* Location Section */}
+              <View style={styles.locationSection}>
+                <Text style={styles.sectionHeading}>Location</Text>
                 <View style={styles.detailItem}>
                   <Ionicons name="location-outline" size={14} color="#666" />
                   <Text style={styles.detailText}>{session.location}</Text>
                 </View>
               </View>
-              <Text style={styles.packageDesc}>{session.description}</Text>
+              
+              {/* Description Section */}
+              <View style={styles.descriptionSection}>
+                <Text style={styles.sectionHeading}>Description</Text>
+                <Text style={styles.packageDesc}>{session.description}</Text>
+              </View>
+              
               <TouchableOpacity 
                 style={styles.buyButton} 
                 activeOpacity={0.8}
