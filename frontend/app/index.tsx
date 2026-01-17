@@ -18,14 +18,9 @@ import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
-    // TODO: Implement actual authentication logic
-    console.log('Login:', email, password);
-    // Navigate to main app (tabs)
+    // Simply redirect to main app
     router.replace('/(tabs)/astrology');
   };
 
