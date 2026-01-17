@@ -15,29 +15,29 @@ const MENU_SECTIONS = [
   {
     title: 'Account',
     items: [
-      { id: 1, label: 'Personal info', icon: 'person-outline', color: '#f6cf92' },
-      { id: 2, label: 'Payment methods & wallet', icon: 'wallet-outline', color: '#4ADE80' },
+      { id: 1, label: 'Personal info', icon: 'person-outline', color: '#f6cf92', route: '/personal-info' },
+      { id: 2, label: 'Payment methods & wallet', icon: 'wallet-outline', color: '#4ADE80', route: '/wallet' },
     ],
   },
   {
     title: 'Spiritual profile',
     items: [
-      { id: 3, label: 'Spiritual preferences', icon: 'heart-outline', color: '#F472B6' },
-      { id: 4, label: 'My sessions', icon: 'calendar-outline', color: '#60A5FA' },
+      { id: 3, label: 'Spiritual preferences', icon: 'heart-outline', color: '#F472B6', route: null },
+      { id: 4, label: 'My sessions', icon: 'calendar-outline', color: '#60A5FA', route: null },
     ],
   },
   {
     title: 'App settings',
     items: [
-      { id: 5, label: 'Notifications', icon: 'notifications-outline', color: '#A78BFA' },
-      { id: 6, label: 'Transaction history', icon: 'receipt-outline', color: '#34D399' },
+      { id: 5, label: 'Notifications', icon: 'notifications-outline', color: '#A78BFA', route: '/notifications' },
+      { id: 6, label: 'Transaction history', icon: 'receipt-outline', color: '#34D399', route: '/transactions' },
     ],
   },
   {
     title: 'Preferences',
     items: [
-      { id: 7, label: 'Language', icon: 'language-outline', color: '#FBBF24' },
-      { id: 8, label: 'Appearance', icon: 'color-palette-outline', color: '#FB923C' },
+      { id: 7, label: 'Language', icon: 'language-outline', color: '#FBBF24', route: null },
+      { id: 8, label: 'Appearance', icon: 'color-palette-outline', color: '#FB923C', route: null },
     ],
   },
 ];
@@ -47,6 +47,12 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     router.replace('/');
+  };
+
+  const handleMenuItemPress = (route: string | null) => {
+    if (route) {
+      router.push(route as any);
+    }
   };
 
   return (
