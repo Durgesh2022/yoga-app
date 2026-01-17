@@ -453,6 +453,17 @@ export default function YogaScreen() {
         classData={selectedClass}
         userCredits={userCredits}
       />
+
+      {/* Package Confirmation Modal */}
+      {selectedPackage && (
+        <PackageConfirmModal
+          visible={confirmModalVisible}
+          onClose={() => setConfirmModalVisible(false)}
+          packageData={selectedPackage}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
+        />
+      )}
     </SafeAreaView>
   );
 }
