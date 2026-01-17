@@ -23,8 +23,10 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
-    // TODO: Implement login logic
+    // TODO: Implement actual authentication logic
     console.log('Login:', email, password);
+    // Navigate to main app (tabs)
+    router.replace('/(tabs)/astrology');
   };
 
   return (
