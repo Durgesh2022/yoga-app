@@ -11,69 +11,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const SERVICES = [
-  {
-    id: 'aaramb',
-    name: 'Aaramb',
-    duration: '12 min',
-    description: 'Free trial to see if we connect',
-    price: 0,
-    isFree: true,
-  },
-  {
-    id: 'sutra',
-    name: 'Sutra',
-    duration: '20 min',
-    description: 'Quick guidance for a specific question or concern',
-    price: 599,
-  },
-  {
-    id: 'yatra',
-    name: 'Yatra',
-    duration: '40 min',
-    description: 'Deep dive into life patterns, birth chart reading',
-    price: 999,
-    isPopular: true,
-  },
-  {
-    id: 'vishwas',
-    name: 'Vishwas',
-    duration: '60 min',
-    description: 'Comprehensive consultation covering multiple life areas',
-    price: 1499,
-  },
-  {
-    id: 'anant',
-    name: 'Anant',
-    duration: '90 min',
-    description: 'Extended session for complex life situations',
-    price: 2199,
-  },
-];
-
-const DATES = ['Today', 'Tomorrow', 'Day after'];
-const TIME_SLOTS = [
-  '9:00 AM', '10:00 AM', '11:00 AM',
-  '2:00 PM', '3:00 PM', '4:00 PM',
-  '6:00 PM', '7:00 PM', '8:00 PM',
-];
-
 export default function AstrologerDetailScreen() {
   const router = useRouter();
-  const [selectedService, setSelectedService] = useState<any>(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('Today');
-  const [selectedTime, setSelectedTime] = useState('10:00 AM');
-  const [userBalance] = useState(1250);
+  const [selectedService, setSelectedService] = useState('Yatra');
+  const [selectedServicePrice, setSelectedServicePrice] = useState(800);
+  const [selectedServiceDuration, setSelectedServiceDuration] = useState('40 min');
+  const [selectedDate, setSelectedDate] = useState('Mon, 2 Dec');
+  const [selectedTime, setSelectedTime] = useState('7:00 PM');
 
-  const handleSelectService = (service: any) => {
+  const handleAddService = (service: string, price: number, duration: string) => {
     setSelectedService(service);
+    setSelectedServicePrice(price);
+    setSelectedServiceDuration(duration);
     setConfirmModalVisible(true);
-  };
-
-  const handleProceedToCheckout = () => {
-    console.log('Proceeding to checkout');
-    setConfirmModalVisible(false);
   };
 
   return (
@@ -81,89 +32,144 @@ export default function AstrologerDetailScreen() {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#333" />
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Astrologer Details</Text>
-          <View style={styles.placeholder} />
+          <View style={{ width: 24 }} />
         </View>
 
         {/* Astrologer Profile */}
         <View style={styles.profileSection}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={40} color="#f6cf92" />
+          <View style={styles.profileLeft}>
+            <View style={styles.profileImage}>
+              <Ionicons name="person" size={40} color="#999" />
             </View>
             <View style={styles.verifiedBadge}>
-              <Ionicons name="checkmark" size={12} color="#FFFFFF" />
+              <Ionicons name="checkmark" size={14} color="#FFF" />
             </View>
           </View>
-
-          <Text style={styles.astrologerName}>Astro Meera</Text>
-
-          <View style={styles.infoGrid}>
-            <View style={styles.infoItem}>
-              <Ionicons name="calendar-outline" size={16} color="#666" />
-              <Text style={styles.infoText}>12 years experience</Text>
+          
+          <View style={styles.profileRight}>
+            <Text style={styles.astrologerName}>Astro Meera</Text>
+            
+            <View style={styles.infoRow}>
+              <Ionicons name="briefcase-outline" size={16} color="#666" />
+              <Text style={styles.infoText}>10+ years in Vedic Astrology</Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="star-outline" size={16} color="#666" />
-              <Text style={styles.infoText}>Vedic Astrology</Text>
+            
+            <View style={styles.infoRow}>
+              <Ionicons name="moon-outline" size={16} color="#666" />
+              <Text style={styles.infoText}>Expert in Tarot & Palmistry</Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="hand-left-outline" size={16} color="#666" />
-              <Text style={styles.infoText}>Tarot & Palmistry</Text>
-            </View>
-            <View style={styles.infoItem}>
+            
+            <View style={styles.infoRow}>
               <Ionicons name="people-outline" size={16} color="#666" />
               <Text style={styles.infoText}>5000+ consultations</Text>
             </View>
-            <View style={styles.infoItem}>
-              <Ionicons name="language-outline" size={16} color="#666" />
-              <Text style={styles.infoText}>Hindi, English</Text>
+            
+            <View style={styles.infoRow}>
+              <Ionicons name="chatbubble-outline" size={16} color="#666" />
+              <Text style={styles.infoText}>Available in Hindi, English</Text>
             </View>
           </View>
         </View>
 
-        {/* Services Section */}
-        <View style={styles.servicesSection}>
-          <Text style={styles.sectionTitle}>Services Offered</Text>
-
-          {SERVICES.map((service) => (
-            <View key={service.id} style={styles.serviceCard}>
-              {service.isFree && (
-                <View style={styles.freeTrialBanner}>
-                  <Text style={styles.freeTrialText}>FREE TRIAL</Text>
-                </View>
-              )}
-              {service.isPopular && (
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularText}>POPULAR</Text>
-                </View>
-              )}
-
-              <View style={styles.serviceHeader}>
-                <View style={styles.serviceInfo}>
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.serviceDuration}>{service.duration}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => handleSelectService(service)}
-                >
-                  <Ionicons name="add" size={20} color="#f6cf92" />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.serviceDesc}>{service.description}</Text>
-
-              <View style={styles.servicePriceRow}>
-                <Text style={styles.servicePrice}>
-                  {service.price === 0 ? 'Free' : `₹${service.price}`}
-                </Text>
+        {/* Aaramb - Free Trial */}
+        <View style={styles.serviceItem}>
+          <View style={styles.serviceLeft}>
+            <View style={styles.serviceTitleRow}>
+              <Text style={styles.serviceName}>Aaramb</Text>
+              <View style={styles.freeTag}>
+                <Text style={styles.freeTagText}>FREE</Text>
               </View>
             </View>
-          ))}
+            <Text style={styles.serviceDuration}>Free 12-min Trial</Text>
+            <Text style={styles.serviceDescription}>Quick introduction call</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={() => handleAddService('Aaramb', 0, '12 min')}
+          >
+            <Ionicons name="add" size={20} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Sutra */}
+        <View style={styles.serviceItem}>
+          <View style={styles.serviceLeft}>
+            <Text style={styles.serviceName}>Sutra</Text>
+            <Text style={styles.serviceDuration}>20 min</Text>
+            <Text style={styles.serviceDescription}>Get to know yourself.</Text>
+          </View>
+          <View style={styles.serviceRight}>
+            <Text style={styles.servicePrice}>₹400</Text>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddService('Sutra', 400, '20 min')}
+            >
+              <Ionicons name="add" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Yatra - Popular */}
+        <View style={styles.serviceItem}>
+          <View style={styles.serviceLeft}>
+            <View style={styles.serviceTitleRow}>
+              <Text style={styles.serviceName}>Yatra</Text>
+              <View style={styles.popularTag}>
+                <Text style={styles.popularTagText}>POPULAR</Text>
+              </View>
+            </View>
+            <Text style={styles.serviceDuration}>40 min</Text>
+            <Text style={styles.serviceDescription}>Detailed life analysis</Text>
+          </View>
+          <View style={styles.serviceRight}>
+            <Text style={styles.servicePrice}>₹800</Text>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddService('Yatra', 800, '40 min')}
+            >
+              <Ionicons name="add" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Vishwas */}
+        <View style={styles.serviceItem}>
+          <View style={styles.serviceLeft}>
+            <Text style={styles.serviceName}>Vishwas</Text>
+            <Text style={styles.serviceDuration}>60 min</Text>
+            <Text style={styles.serviceDescription}>Complete horoscope reading</Text>
+          </View>
+          <View style={styles.serviceRight}>
+            <Text style={styles.servicePrice}>₹1,200</Text>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddService('Vishwas', 1200, '60 min')}
+            >
+              <Ionicons name="add" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Anant */}
+        <View style={styles.serviceItem}>
+          <View style={styles.serviceLeft}>
+            <Text style={styles.serviceName}>Anant</Text>
+            <Text style={styles.serviceDuration}>90 min</Text>
+            <Text style={styles.serviceDescription}>In-depth life path & future guidance</Text>
+          </View>
+          <View style={styles.serviceRight}>
+            <Text style={styles.servicePrice}>₹1,500</Text>
+            <TouchableOpacity 
+              style={styles.addButton}
+              onPress={() => handleAddService('Anant', 1500, '90 min')}
+            >
+              <Ionicons name="add" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -176,93 +182,64 @@ export default function AstrologerDetailScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {/* Modal Header */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Confirm Session</Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setConfirmModalVisible(false)}
-              >
-                <Ionicons name="close" size={24} color="#333" />
+              <TouchableOpacity onPress={() => setConfirmModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#000" />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Session Summary */}
-              {selectedService && (
-                <View style={styles.sessionSummary}>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Astrologer</Text>
-                    <Text style={styles.summaryValue}>Astro Meera</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Service</Text>
-                    <Text style={styles.summaryValue}>{selectedService.name}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Duration</Text>
-                    <Text style={styles.summaryValue}>{selectedService.duration}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Price</Text>
-                    <Text style={styles.summaryPrice}>
-                      {selectedService.price === 0 ? 'Free' : `₹${selectedService.price}`}
+              {/* Summary */}
+              <Text style={styles.sectionLabel}>Summary</Text>
+              <View style={styles.summaryBox}>
+                <View style={styles.summaryProfile}>
+                  <Ionicons name="person-circle" size={40} color="#999" />
+                </View>
+                <View style={styles.summaryDetails}>
+                  <Text style={styles.summaryName}>Astro Meera</Text>
+                  <Text style={styles.summaryService}>{selectedService} - {selectedServiceDuration}</Text>
+                  <Text style={styles.summaryPrice}>₹{selectedServicePrice}</Text>
+                </View>
+              </View>
+
+              {/* Choose date */}
+              <Text style={styles.sectionLabel}>Choose date</Text>
+              <View style={styles.tabsRow}>
+                {['Mon, 2 Dec', 'Tue, 3 Dec', 'Wed, 4 D'].map((date) => (
+                  <TouchableOpacity
+                    key={date}
+                    style={[styles.tab, selectedDate === date && styles.tabSelected]}
+                    onPress={() => setSelectedDate(date)}
+                  >
+                    <Text style={[styles.tabText, selectedDate === date && styles.tabTextSelected]}>
+                      {date}
                     </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Date Selection */}
-              <View style={styles.selectionSection}>
-                <Text style={styles.selectionTitle}>Select Date</Text>
-                <View style={styles.dateOptions}>
-                  {DATES.map((date) => (
-                    <TouchableOpacity
-                      key={date}
-                      style={[styles.dateOption, selectedDate === date && styles.selectedOption]}
-                      onPress={() => setSelectedDate(date)}
-                    >
-                      <Text
-                        style={[
-                          styles.dateOptionText,
-                          selectedDate === date && styles.selectedOptionText,
-                        ]}
-                      >
-                        {date}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                  </TouchableOpacity>
+                ))}
               </View>
 
-              {/* Time Selection */}
-              <View style={styles.selectionSection}>
-                <Text style={styles.selectionTitle}>Select Time</Text>
-                <View style={styles.timeGrid}>
-                  {TIME_SLOTS.map((time) => (
-                    <TouchableOpacity
-                      key={time}
-                      style={[styles.timeSlot, selectedTime === time && styles.selectedTimeSlot]}
-                      onPress={() => setSelectedTime(time)}
-                    >
-                      <Text
-                        style={[
-                          styles.timeSlotText,
-                          selectedTime === time && styles.selectedTimeSlotText,
-                        ]}
-                      >
-                        {time}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+              {/* Choose time */}
+              <Text style={styles.sectionLabel}>Choose time</Text>
+              <View style={styles.tabsRow}>
+                {['7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM'].map((time) => (
+                  <TouchableOpacity
+                    key={time}
+                    style={[styles.tab, selectedTime === time && styles.tabSelected]}
+                    onPress={() => setSelectedTime(time)}
+                  >
+                    <Text style={[styles.tabText, selectedTime === time && styles.tabTextSelected]}>
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
 
-              {/* Wallet Balance */}
-              <View style={styles.walletSection}>
-                <View style={styles.balanceRow}>
-                  <Text style={styles.balanceLabel}>Balance</Text>
-                  <Text style={styles.balanceValue}>₹{userBalance}</Text>
+              {/* Balance */}
+              <View style={styles.balanceRow}>
+                <View style={styles.balanceLeft}>
+                  <Ionicons name="wallet-outline" size={20} color="#666" />
+                  <Text style={styles.balanceText}>Balance: ₹2,450</Text>
                 </View>
                 <TouchableOpacity>
                   <Text style={styles.addFundsText}>Add funds</Text>
@@ -271,21 +248,15 @@ export default function AstrologerDetailScreen() {
             </ScrollView>
 
             {/* Action Buttons */}
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.proceedButton}
-                onPress={handleProceedToCheckout}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.proceedButtonText}>Proceed to Checkout</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.backModalButton}
-                onPress={() => setConfirmModalVisible(false)}
-              >
-                <Text style={styles.backModalButtonText}>Back</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.proceedButton}>
+              <Text style={styles.proceedButtonText}>Proceed to Checkout</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => setConfirmModalVisible(false)}
+            >
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -296,7 +267,7 @@ export default function AstrologerDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#FFF',
   },
   container: {
     flex: 1,
@@ -305,40 +276,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
-  },
-  placeholder: {
-    width: 40,
+    fontWeight: '600',
+    color: '#000',
   },
   profileSection: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 12,
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  avatarContainer: {
+  profileLeft: {
     position: 'relative',
-    marginBottom: 16,
+    marginRight: 16,
   },
-  avatar: {
+  profileImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FFF9F0',
+    backgroundColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -349,137 +309,114 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#4ADE80',
+    backgroundColor: '#f6cf92',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#FFF',
+  },
+  profileRight: {
+    flex: 1,
+    justifyContent: 'center',
   },
   astrologerName: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#333',
-    marginBottom: 20,
+    color: '#000',
+    marginBottom: 12,
   },
-  infoGrid: {
-    width: '100%',
-    gap: 12,
-  },
-  infoItem: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    marginBottom: 6,
   },
   infoText: {
     fontSize: 14,
     color: '#666',
+    marginLeft: 8,
   },
-  servicesSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 16,
-  },
-  serviceCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-    position: 'relative',
-  },
-  freeTrialBanner: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#4ADE80',
-    paddingVertical: 6,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    alignItems: 'center',
-  },
-  freeTrialText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#f6cf92',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  popularText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  serviceHeader: {
+  serviceItem: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  serviceInfo: {
+  serviceLeft: {
     flex: 1,
+  },
+  serviceTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   serviceName: {
     fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginRight: 8,
+  },
+  freeTag: {
+    backgroundColor: '#4ADE80',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  freeTagText: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#333',
-    marginBottom: 4,
+    color: '#FFF',
+  },
+  popularTag: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  popularTagText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#000',
   },
   serviceDuration: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  serviceDescription: {
     fontSize: 13,
     color: '#999',
+  },
+  serviceRight: {
+    alignItems: 'flex-end',
+  },
+  servicePrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
   },
   addButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFF9F0',
+    backgroundColor: '#f6cf92',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  serviceDesc: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  servicePriceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  servicePrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#f6cf92',
-  },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 36,
+    paddingTop: 20,
+    paddingBottom: 32,
     maxHeight: '85%',
   },
   modalHeader: {
@@ -489,158 +426,114 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
   },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sessionSummary: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  summaryLabel: {
+  sectionLabel: {
     fontSize: 14,
+    fontWeight: '600',
     color: '#666',
-  },
-  summaryValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  summaryPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#f6cf92',
-  },
-  selectionSection: {
-    marginBottom: 20,
-  },
-  selectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    marginTop: 16,
     marginBottom: 12,
   },
-  dateOptions: {
+  summaryBox: {
     flexDirection: 'row',
-    gap: 10,
-  },
-  dateOption: {
-    flex: 1,
-    paddingVertical: 12,
+    padding: 12,
+    backgroundColor: '#F8F8F8',
     borderRadius: 12,
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    alignItems: 'center',
   },
-  selectedOption: {
-    backgroundColor: '#E8F4F8',
-    borderColor: '#5DADE2',
+  summaryProfile: {
+    marginRight: 12,
   },
-  dateOptionText: {
+  summaryDetails: {
+    flex: 1,
+  },
+  summaryName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  summaryService: {
     fontSize: 14,
-    fontWeight: '500',
     color: '#666',
+    marginBottom: 4,
   },
-  selectedOptionText: {
-    color: '#5DADE2',
+  summaryPrice: {
+    fontSize: 18,
     fontWeight: '700',
+    color: '#000',
   },
-  timeGrid: {
+  tabsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
   },
-  timeSlot: {
-    width: '30%',
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    alignItems: 'center',
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: '#F0F0F0',
   },
-  selectedTimeSlot: {
-    backgroundColor: '#E8F4F8',
-    borderColor: '#5DADE2',
+  tabSelected: {
+    backgroundColor: '#f6cf92',
   },
-  timeSlotText: {
-    fontSize: 13,
-    fontWeight: '500',
+  tabText: {
+    fontSize: 14,
     color: '#666',
   },
-  selectedTimeSlotText: {
-    color: '#5DADE2',
-    fontWeight: '700',
-  },
-  walletSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F8F8F8',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
+  tabTextSelected: {
+    color: '#FFF',
+    fontWeight: '600',
   },
   balanceRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    padding: 12,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    marginTop: 16,
+    marginBottom: 20,
   },
-  balanceLabel: {
+  balanceLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  balanceText: {
     fontSize: 14,
     color: '#666',
-  },
-  balanceValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    marginLeft: 8,
   },
   addFundsText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5DADE2',
-  },
-  actionButtons: {
-    gap: 12,
+    color: '#f6cf92',
   },
   proceedButton: {
     backgroundColor: '#f6cf92',
-    borderRadius: 12,
     paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
+    marginBottom: 12,
   },
   proceedButtonText: {
-    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+    color: '#FFF',
   },
-  backModalButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 12,
+  backButton: {
+    backgroundColor: '#FFF',
     paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: '#f6cf92',
   },
-  backModalButtonText: {
-    color: '#f6cf92',
+  backButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#f6cf92',
   },
 });
