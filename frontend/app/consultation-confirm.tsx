@@ -24,15 +24,15 @@ export default function ConsultationConfirmScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color="#000" />
+            <Ionicons name="chevron-back" size={24} color="#333" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Yoga</Text>
             <Text style={styles.headerSubtitle}>Confirm your consultation</Text>
           </View>
           <View style={styles.freeBadge}>
-            <Ionicons name="star-outline" size={14} color="#60A5FA" />
-            <Text style={styles.freeBadgeText}>Consultation is free</Text>
+            <Ionicons name="star" size={14} color="#D4A574" />
+            <Text style={styles.freeBadgeText}>Free</Text>
           </View>
         </View>
 
@@ -58,7 +58,7 @@ export default function ConsultationConfirmScreen() {
 
             <View style={styles.consultantRow}>
               <View style={styles.consultantAvatar}>
-                <Ionicons name="person" size={20} color="#60A5FA" />
+                <Ionicons name="person" size={20} color="#D4A574" />
               </View>
               <View style={styles.consultantInfo}>
                 <Text style={styles.consultantTitle}>Certified yoga guide</Text>
@@ -146,7 +146,7 @@ export default function ConsultationConfirmScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F8FA',
+    backgroundColor: '#FAF8F5',
   },
   container: {
     flex: 1,
@@ -157,42 +157,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0EBE3',
   },
   backButton: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FAF8F5',
+    borderRadius: 20,
   },
   headerCenter: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 12,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: '#8B8680',
     marginTop: 2,
   },
   freeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFF9F0',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#F0EBE3',
     gap: 4,
   },
   freeBadgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#60A5FA',
+    color: '#D4A574',
   },
   scrollView: {
     flex: 1,
@@ -203,6 +207,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#F0EBE3',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -213,16 +219,16 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
   },
   editLink: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#60A5FA',
+    color: '#D4A574',
   },
   fromProfile: {
     fontSize: 12,
-    color: '#999',
+    color: '#A9A5A0',
   },
   detailRow: {
     flexDirection: 'row',
@@ -231,12 +237,12 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#888',
+    color: '#8B8680',
   },
   detailValue: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: '#2D2A26',
   },
   consultantRow: {
     flexDirection: 'row',
@@ -247,10 +253,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E8F4FC',
+    backgroundColor: '#FFF9F0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    borderWidth: 2,
+    borderColor: '#F0EBE3',
   },
   consultantInfo: {
     flex: 1,
@@ -258,19 +266,19 @@ const styles = StyleSheet.create({
   consultantTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: '#2D2A26',
     marginBottom: 2,
   },
   consultantDesc: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
   },
   pricingHeader: {
     marginBottom: 8,
   },
   pricingLabel: {
     fontSize: 14,
-    color: '#888',
+    color: '#8B8680',
     marginBottom: 8,
   },
   priceRow: {
@@ -281,10 +289,10 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
   },
   freeTag: {
-    backgroundColor: '#DCFCE7',
+    backgroundColor: '#E8F5E8',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -292,21 +300,21 @@ const styles = StyleSheet.create({
   freeTagText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#22C55E',
+    color: '#4CAF50',
   },
   freeNote: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
     marginBottom: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F0EBE3',
     marginBottom: 16,
   },
   contactDesc: {
     fontSize: 14,
-    color: '#666',
+    color: '#6B6560',
     lineHeight: 21,
     marginBottom: 16,
   },
@@ -314,35 +322,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#FAF8F5',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
   },
   phoneLabel: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
     marginBottom: 4,
   },
   phoneNumber: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
+    color: '#2D2A26',
   },
   changeButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#E8E8E8',
+    backgroundColor: '#F0EBE3',
   },
   changeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#333',
+    color: '#6B6560',
   },
   additionalInfo: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
     marginBottom: 16,
   },
   infoBox: {
@@ -354,19 +362,19 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#4CAF50',
     marginTop: 5,
   },
   infoText: {
     flex: 1,
     fontSize: 14,
-    color: '#22C55E',
+    color: '#4CAF50',
     lineHeight: 20,
   },
   confirmButton: {
     marginHorizontal: 16,
     marginTop: 24,
-    backgroundColor: '#60A5FA',
+    backgroundColor: '#D4A574',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -383,7 +391,7 @@ const styles = StyleSheet.create({
   whyFreeText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#60A5FA',
+    color: '#D4A574',
   },
   bottomSpace: {
     height: 30,

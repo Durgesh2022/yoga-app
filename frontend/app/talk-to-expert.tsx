@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,14 +40,14 @@ export default function TalkToExpertScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color="#000" />
+            <Ionicons name="chevron-back" size={24} color="#333" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Yoga</Text>
             <Text style={styles.headerSubtitle}>Talk to an expert</Text>
           </View>
           <View style={styles.creditsBox}>
-            <Ionicons name="star-outline" size={14} color="#60A5FA" />
+            <Ionicons name="star" size={14} color="#D4A574" />
             <Text style={styles.creditsText}>Credits: 6</Text>
           </View>
         </View>
@@ -63,7 +62,7 @@ export default function TalkToExpertScreen() {
             
             <View style={styles.expertRow}>
               <View style={styles.expertAvatar}>
-                <Ionicons name="person" size={24} color="#60A5FA" />
+                <Ionicons name="person" size={24} color="#D4A574" />
               </View>
               <View style={styles.expertInfo}>
                 <Text style={styles.expertTitle}>Certified yoga therapist</Text>
@@ -159,25 +158,25 @@ export default function TalkToExpertScreen() {
             
             <View style={styles.expectList}>
               <View style={styles.expectItem}>
-                <Text style={styles.bulletDash}>-</Text>
+                <View style={styles.bulletDot} />
                 <Text style={styles.expectText}>
                   Your consultant will take a gentle deep dive into why you are seeking yoga now, how you want to feel, and any past injuries or health conditions.
                 </Text>
               </View>
               <View style={styles.expectItem}>
-                <Text style={styles.bulletDash}>-</Text>
+                <View style={styles.bulletDot} />
                 <Text style={styles.expectText}>
                   They will ask about your previous experience with yoga, meditation or fitness (if any) and how much time you realistically have in a week.
                 </Text>
               </View>
               <View style={styles.expectItem}>
-                <Text style={styles.bulletDash}>-</Text>
+                <View style={styles.bulletDot} />
                 <Text style={styles.expectText}>
                   Together you will decide whether to start with gentle Hatha, Yin, Restorative, chair-based or breath-focused practices.
                 </Text>
               </View>
               <View style={styles.expectItem}>
-                <Text style={styles.bulletDash}>-</Text>
+                <View style={styles.bulletDot} />
                 <Text style={styles.expectText}>
                   You will leave the call with 1-3 concrete class recommendations, a safe starting frequency, and tips on how to listen to your body.
                 </Text>
@@ -208,7 +207,7 @@ export default function TalkToExpertScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F8FA',
+    backgroundColor: '#FAF8F5',
   },
   container: {
     flex: 1,
@@ -219,42 +218,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0EBE3',
   },
   backButton: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FAF8F5',
+    borderRadius: 20,
   },
   headerCenter: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 12,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: '#8B8680',
     marginTop: 2,
   },
   creditsBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#FFF9F0',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#F0EBE3',
     gap: 6,
   },
   creditsText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#60A5FA',
+    color: '#D4A574',
   },
   scrollView: {
     flex: 1,
@@ -267,12 +270,12 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
     marginBottom: 8,
   },
   infoDesc: {
     fontSize: 14,
-    color: '#666',
+    color: '#6B6560',
     lineHeight: 21,
     marginBottom: 20,
   },
@@ -284,10 +287,12 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E8F4FC',
+    backgroundColor: '#FFF9F0',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
+    borderWidth: 2,
+    borderColor: '#F0EBE3',
   },
   expertInfo: {
     flex: 1,
@@ -296,21 +301,21 @@ const styles = StyleSheet.create({
   expertTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: '#2D2A26',
     marginBottom: 3,
   },
   expertTags: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
     marginBottom: 3,
   },
   expertAvailable: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
   },
   freeLabel: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
   },
   section: {
     padding: 20,
@@ -320,7 +325,7 @@ const styles = StyleSheet.create({
   questionLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
     marginBottom: 16,
   },
   optionRow: {
@@ -331,18 +336,18 @@ const styles = StyleSheet.create({
   optionChip: {
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: '#FFF',
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderColor: '#E8E4DE',
   },
   optionChipSelected: {
-    backgroundColor: '#60A5FA',
-    borderColor: '#60A5FA',
+    backgroundColor: '#D4A574',
+    borderColor: '#D4A574',
   },
   optionChipText: {
     fontSize: 14,
-    color: '#333',
+    color: '#6B6560',
     fontWeight: '500',
   },
   optionChipTextSelected: {
@@ -357,19 +362,19 @@ const styles = StyleSheet.create({
   scheduleChip: {
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: '#FFF',
     borderWidth: 1.5,
-    borderColor: '#E0E0E0',
+    borderColor: '#E8E4DE',
     minWidth: '45%',
   },
   scheduleChipSelected: {
-    backgroundColor: '#60A5FA',
-    borderColor: '#60A5FA',
+    backgroundColor: '#D4A574',
+    borderColor: '#D4A574',
   },
   scheduleChipText: {
     fontSize: 14,
-    color: '#333',
+    color: '#6B6560',
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -385,7 +390,7 @@ const styles = StyleSheet.create({
   },
   optionalText: {
     fontSize: 13,
-    color: '#999',
+    color: '#A9A5A0',
   },
   contextInputContainer: {
     flexDirection: 'row',
@@ -394,11 +399,11 @@ const styles = StyleSheet.create({
   },
   contextPlaceholder: {
     fontSize: 14,
-    color: '#666',
+    color: '#8B8680',
   },
   charCount: {
     fontSize: 13,
-    color: '#999',
+    color: '#A9A5A0',
   },
   textInput: {
     borderWidth: 0,
@@ -409,7 +414,7 @@ const styles = StyleSheet.create({
   },
   expectCard: {
     padding: 20,
-    backgroundColor: '#F5F8FA',
+    backgroundColor: '#FAF8F5',
     marginHorizontal: 0,
   },
   expectHeader: {
@@ -421,11 +426,11 @@ const styles = StyleSheet.create({
   expectTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#2D2A26',
   },
   expectDuration: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
   },
   expectList: {
     marginBottom: 16,
@@ -434,27 +439,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 14,
   },
-  bulletDash: {
-    fontSize: 14,
-    color: '#60A5FA',
-    marginRight: 10,
-    fontWeight: '600',
+  bulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D4A574',
+    marginTop: 7,
+    marginRight: 12,
   },
   expectText: {
     flex: 1,
     fontSize: 14,
-    color: '#555',
+    color: '#6B6560',
     lineHeight: 21,
   },
   expectNote: {
     fontSize: 13,
-    color: '#888',
+    color: '#8B8680',
     lineHeight: 19,
   },
   confirmButton: {
     marginHorizontal: 20,
     marginTop: 20,
-    backgroundColor: '#60A5FA',
+    backgroundColor: '#D4A574',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -471,7 +478,7 @@ const styles = StyleSheet.create({
   creditsLinkText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#60A5FA',
+    color: '#D4A574',
   },
   bottomSpace: {
     height: 30,

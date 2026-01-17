@@ -1,29 +1,38 @@
 import { Tabs } from 'expo-router';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#f6cf92',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: '#C9956C',
+        tabBarInactiveTintColor: '#A9A5A0',
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E8E8E8',
-          paddingBottom: 12,
+          borderTopWidth: 0,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
           paddingTop: 12,
-          height: 72,
-          elevation: 8,
+          height: Platform.OS === 'ios' ? 88 : 72,
+          elevation: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: '600',
           marginTop: 4,
+          letterSpacing: 0.2,
         },
         tabBarIconStyle: {
           marginTop: 4,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
       }}
     >
@@ -32,7 +41,9 @@ export default function TabLayout() {
         options={{
           title: 'Astrology',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'star' : 'star-outline'} size={24} color={color} />
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Ionicons name={focused ? 'sparkles' : 'sparkles-outline'} size={22} color={color} />
+            </View>
           ),
         }}
       />
@@ -41,7 +52,9 @@ export default function TabLayout() {
         options={{
           title: 'Yoga',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'body' : 'body-outline'} size={24} color={color} />
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Ionicons name={focused ? 'leaf' : 'leaf-outline'} size={22} color={color} />
+            </View>
           ),
         }}
       />
@@ -50,7 +63,9 @@ export default function TabLayout() {
         options={{
           title: 'Reiki',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'hand-left' : 'hand-left-outline'} size={24} color={color} />
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Ionicons name={focused ? 'hand-left' : 'hand-left-outline'} size={22} color={color} />
+            </View>
           ),
         }}
       />
@@ -59,7 +74,9 @@ export default function TabLayout() {
         options={{
           title: 'Pujas',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'flame' : 'flame-outline'} size={24} color={color} />
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Ionicons name={focused ? 'flame' : 'flame-outline'} size={22} color={color} />
+            </View>
           ),
         }}
       />
@@ -68,10 +85,25 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
+            <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
+            </View>
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrapper: {
+    width: 40,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapperActive: {
+    backgroundColor: '#FFF5EB',
+  },
+});
