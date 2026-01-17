@@ -6,15 +6,29 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+const CONNECTION_METHODS = [
+  { id: 'text', label: 'Text + voice notes' },
+  { id: 'voice', label: 'Voice call (15 min)' },
+  { id: 'video', label: 'Video call (20 min)' },
+];
+
+const SCHEDULE_OPTIONS = [
+  { id: 'now', label: 'Within 30 mins' },
+  { id: 'evening', label: 'This evening (6-10 PM)' },
+  { id: 'tomorrow', label: 'Tomorrow morning' },
+  { id: 'custom', label: 'Share my own time' },
+];
+
 export default function TalkToExpertScreen() {
   const router = useRouter();
-  const [connectionMethod, setConnectionMethod] = useState('Voice call (15 min)');
-  const [scheduleTiming, setScheduleTiming] = useState('This evening (6-10 PM)');
+  const [connectionMethod, setConnectionMethod] = useState('text');
+  const [scheduleTiming, setScheduleTiming] = useState('now');
   const [contextText, setContextText] = useState('');
 
   const handleConfirmConsultation = () => {
@@ -26,30 +40,30 @@ export default function TalkToExpertScreen() {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#000" />
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color="#000" />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Yoga</Text>
             <Text style={styles.headerSubtitle}>Talk to an expert</Text>
           </View>
           <View style={styles.creditsBox}>
-            <Ionicons name="star" size={14} color="#f6cf92" />
-            <Text style={styles.creditsText}>6</Text>
+            <Ionicons name="star-outline" size={14} color="#60A5FA" />
+            <Text style={styles.creditsText}>Credits: 6</Text>
           </View>
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          {/* Consultation Info */}
+          {/* Consultation Info Card */}
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>1:1 consultation call</Text>
             <Text style={styles.infoDesc}>
-              Get personalized guidance from a yoga expert who'll help you find the right practice for your body and goals.
+              A certified yoga consultant will help you choose the safest, most supportive start to your practice.
             </Text>
             
             <View style={styles.expertRow}>
               <View style={styles.expertAvatar}>
-                <Ionicons name="person" size={28} color="#999" />
+                <Ionicons name="person" size={24} color="#60A5FA" />
               </View>
               <View style={styles.expertInfo}>
                 <Text style={styles.expertTitle}>Certified yoga therapist</Text>
@@ -58,108 +72,114 @@ export default function TalkToExpertScreen() {
               </View>
             </View>
 
-            <View style={styles.freeBox}>
-              <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
-              <Text style={styles.freeText}>Consultation is free</Text>
-            </View>
+            <Text style={styles.freeLabel}>Consultation is free</Text>
           </View>
 
           {/* How to connect */}
           <View style={styles.section}>
             <Text style={styles.questionLabel}>How would you like to connect?</Text>
-            {['Text + voice notes', 'Voice call (15 min)', 'Video call (20 min)'].map((method) => (
-              <TouchableOpacity
-                key={method}
-                style={[
-                  styles.optionButton,
-                  connectionMethod === method && styles.optionSelected,
-                ]}
-                onPress={() => setConnectionMethod(method)}
-              >
-                <Text
+            <View style={styles.optionRow}>
+              {CONNECTION_METHODS.map((method) => (
+                <TouchableOpacity
+                  key={method.id}
                   style={[
-                    styles.optionText,
-                    connectionMethod === method && styles.optionTextSelected,
+                    styles.optionChip,
+                    connectionMethod === method.id && styles.optionChipSelected,
                   ]}
+                  onPress={() => setConnectionMethod(method.id)}
                 >
-                  {method}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.optionChipText,
+                      connectionMethod === method.id && styles.optionChipTextSelected,
+                    ]}
+                  >
+                    {method.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* When to schedule */}
           <View style={styles.section}>
             <Text style={styles.questionLabel}>When do you want to schedule it?</Text>
-            {['Within 30 mins', 'This evening (6-10 PM)', 'Tomorrow morning', 'Share my own time'].map((timing) => (
-              <TouchableOpacity
-                key={timing}
-                style={[
-                  styles.optionButton,
-                  scheduleTiming === timing && styles.optionSelected,
-                ]}
-                onPress={() => setScheduleTiming(timing)}
-              >
-                <Text
+            <View style={styles.scheduleGrid}>
+              {SCHEDULE_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option.id}
                   style={[
-                    styles.optionText,
-                    scheduleTiming === timing && styles.optionTextSelected,
+                    styles.scheduleChip,
+                    scheduleTiming === option.id && styles.scheduleChipSelected,
                   ]}
+                  onPress={() => setScheduleTiming(option.id)}
                 >
-                  {timing}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.scheduleChipText,
+                      scheduleTiming === option.id && styles.scheduleChipTextSelected,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* Context */}
           <View style={styles.section}>
-            <Text style={styles.questionLabel}>Anything you want them to know first?</Text>
-            <Text style={styles.inputSubLabel}>
-              Give a short context <Text style={styles.optional}>Optional</Text>
-            </Text>
+            <View style={styles.contextHeader}>
+              <Text style={styles.questionLabel}>Anything you want them to know first?</Text>
+              <Text style={styles.optionalText}>Optional</Text>
+            </View>
+            <View style={styles.contextInputContainer}>
+              <Text style={styles.contextPlaceholder}>Give a short context</Text>
+              <Text style={styles.charCount}>{contextText.length}/200</Text>
+            </View>
             <TextInput
               style={styles.textInput}
               placeholder="Eg. I have lower back pain, sit at a desk all day, tried a few YouTube classes but felt overwhelmed."
               placeholderTextColor="#999"
               multiline
-              numberOfLines={4}
+              numberOfLines={3}
               maxLength={200}
               value={contextText}
               onChangeText={setContextText}
               textAlignVertical="top"
             />
-            <Text style={styles.charCount}>{contextText.length}/200</Text>
           </View>
 
           {/* What to expect */}
           <View style={styles.expectCard}>
-            <Text style={styles.expectTitle}>What to expect during the call</Text>
-            <Text style={styles.expectDuration}>Takes ~15 mins</Text>
+            <View style={styles.expectHeader}>
+              <Text style={styles.expectTitle}>What to expect during the call</Text>
+              <Text style={styles.expectDuration}>Takes ~15 mins</Text>
+            </View>
             
             <View style={styles.expectList}>
               <View style={styles.expectItem}>
-                <View style={styles.bulletDot} />
+                <Text style={styles.bulletDash}>-</Text>
                 <Text style={styles.expectText}>
-                  Deep dive into reasons for seeking yoga, past injuries/conditions.
+                  Your consultant will take a gentle deep dive into why you are seeking yoga now, how you want to feel, and any past injuries or health conditions.
                 </Text>
               </View>
               <View style={styles.expectItem}>
-                <View style={styles.bulletDot} />
+                <Text style={styles.bulletDash}>-</Text>
                 <Text style={styles.expectText}>
-                  Discussion of previous experience with yoga/meditation, time availability.
+                  They will ask about your previous experience with yoga, meditation or fitness (if any) and how much time you realistically have in a week.
                 </Text>
               </View>
               <View style={styles.expectItem}>
-                <View style={styles.bulletDot} />
+                <Text style={styles.bulletDash}>-</Text>
                 <Text style={styles.expectText}>
-                  Decision on practice types (Hatha, Yin, Restorative, chair-based, breath-focused).
+                  Together you will decide whether to start with gentle Hatha, Yin, Restorative, chair-based or breath-focused practices.
                 </Text>
               </View>
               <View style={styles.expectItem}>
-                <View style={styles.bulletDot} />
+                <Text style={styles.bulletDash}>-</Text>
                 <Text style={styles.expectText}>
-                  Outcome: 1-3 class recommendations, safe frequency, tips for listening to the body.
+                  You will leave the call with 1-3 concrete class recommendations, a safe starting frequency, and tips on how to listen to your body.
                 </Text>
               </View>
             </View>
@@ -169,7 +189,7 @@ export default function TalkToExpertScreen() {
             </Text>
           </View>
 
-          {/* Buttons */}
+          {/* Confirm Button */}
           <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmConsultation}>
             <Text style={styles.confirmButtonText}>Confirm consultation</Text>
           </TouchableOpacity>
@@ -188,7 +208,7 @@ export default function TalkToExpertScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#F5F8FA',
   },
   container: {
     flex: 1,
@@ -196,51 +216,56 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerCenter: {
     flex: 1,
-    alignItems: 'center',
+    marginLeft: 8,
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#000',
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#666',
     marginTop: 2,
   },
   creditsBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF9F0',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 4,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 6,
   },
   creditsText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#f6cf92',
+    fontWeight: '600',
+    color: '#60A5FA',
   },
   scrollView: {
     flex: 1,
   },
   infoCard: {
-    padding: 16,
+    padding: 20,
     backgroundColor: '#FFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    marginBottom: 8,
   },
   infoTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#000',
     marginBottom: 8,
@@ -248,21 +273,21 @@ const styles = StyleSheet.create({
   infoDesc: {
     fontSize: 14,
     color: '#666',
-    lineHeight: 20,
-    marginBottom: 16,
+    lineHeight: 21,
+    marginBottom: 20,
   },
   expertRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   expertAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#F0F0F0',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F4FC',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   expertInfo: {
     flex: 1,
@@ -271,136 +296,165 @@ const styles = StyleSheet.create({
   expertTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
+    color: '#333',
+    marginBottom: 3,
   },
   expertTags: {
     fontSize: 13,
-    color: '#666',
-    marginBottom: 4,
+    color: '#888',
+    marginBottom: 3,
   },
   expertAvailable: {
     fontSize: 13,
-    color: '#4ADE80',
-    fontWeight: '600',
+    color: '#888',
   },
-  freeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    gap: 6,
-  },
-  freeText: {
+  freeLabel: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#4ADE80',
+    color: '#888',
   },
   section: {
-    padding: 16,
+    padding: 20,
+    backgroundColor: '#FFF',
+    marginBottom: 8,
   },
   questionLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#000',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  optionButton: {
-    paddingVertical: 14,
+  optionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  optionChip: {
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 8,
     backgroundColor: '#FFF',
     borderWidth: 1.5,
-    borderColor: '#E8E8E8',
-    marginBottom: 10,
+    borderColor: '#E0E0E0',
   },
-  optionSelected: {
-    backgroundColor: '#E8F4F8',
-    borderColor: '#f6cf92',
+  optionChipSelected: {
+    backgroundColor: '#60A5FA',
+    borderColor: '#60A5FA',
   },
-  optionText: {
-    fontSize: 15,
-    color: '#666',
+  optionChipText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
   },
-  optionTextSelected: {
-    color: '#f6cf92',
+  optionChipTextSelected: {
+    color: '#FFF',
     fontWeight: '600',
   },
-  inputSubLabel: {
+  scheduleGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  scheduleChip: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    minWidth: '45%',
+  },
+  scheduleChipSelected: {
+    backgroundColor: '#60A5FA',
+    borderColor: '#60A5FA',
+  },
+  scheduleChipText: {
     fontSize: 14,
+    color: '#333',
     fontWeight: '500',
-    color: '#000',
+    textAlign: 'center',
+  },
+  scheduleChipTextSelected: {
+    color: '#FFF',
+    fontWeight: '600',
+  },
+  contextHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  optional: {
+  optionalText: {
+    fontSize: 13,
     color: '#999',
-    fontWeight: '400',
   },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    borderRadius: 12,
-    padding: 12,
+  contextInputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  contextPlaceholder: {
     fontSize: 14,
-    color: '#000',
-    minHeight: 100,
-    backgroundColor: '#FFF',
+    color: '#666',
   },
   charCount: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#999',
-    textAlign: 'right',
-    marginTop: 4,
+  },
+  textInput: {
+    borderWidth: 0,
+    fontSize: 14,
+    color: '#999',
+    minHeight: 60,
+    backgroundColor: '#FFF',
   },
   expectCard: {
-    padding: 16,
-    backgroundColor: '#FFF',
+    padding: 20,
+    backgroundColor: '#F5F8FA',
+    marginHorizontal: 0,
+  },
+  expectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   expectTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#000',
-    marginBottom: 4,
   },
   expectDuration: {
     fontSize: 13,
-    color: '#999',
-    marginBottom: 16,
+    color: '#888',
   },
   expectList: {
     marginBottom: 16,
   },
   expectItem: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  bulletDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#f6cf92',
-    marginTop: 6,
+  bulletDash: {
+    fontSize: 14,
+    color: '#60A5FA',
     marginRight: 10,
+    fontWeight: '600',
   },
   expectText: {
     flex: 1,
     fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
+    color: '#555',
+    lineHeight: 21,
   },
   expectNote: {
     fontSize: 13,
-    color: '#666',
+    color: '#888',
     lineHeight: 19,
-    fontStyle: 'italic',
   },
   confirmButton: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    backgroundColor: '#f6cf92',
+    marginHorizontal: 20,
+    marginTop: 20,
+    backgroundColor: '#60A5FA',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -413,14 +467,13 @@ const styles = StyleSheet.create({
   creditsLink: {
     alignItems: 'center',
     paddingVertical: 16,
-    marginHorizontal: 16,
   },
   creditsLinkText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#f6cf92',
+    color: '#60A5FA',
   },
   bottomSpace: {
-    height: 20,
+    height: 30,
   },
 });
