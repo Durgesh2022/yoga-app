@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
 const ASTROLOGERS = [
   { id: 1, name: 'Astro Meera', rating: 4.9, reviews: 1200, service: 'Tarot & Palmistry', available: true },
