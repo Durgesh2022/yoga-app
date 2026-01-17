@@ -190,38 +190,107 @@ export default function YogaScreen() {
   );
 
   const renderPricingTab = () => (
-    <ScrollView style={styles.pricingScroll} showsVerticalScrollIndicator={false}>
-      <View style={styles.pricingHeader}>
-        <Ionicons name="information-circle-outline" size={16} color="#f6cf92" />
-        <Text style={styles.creditInfo}>1 credit = ₹599 INR</Text>
+    <View style={styles.pricingContainer}>
+      {/* Sidebar for Session Type Selection */}
+      <View style={styles.sidebarContainer}>
+        <Text style={styles.sidebarTitle}>Private Session</Text>
+        <TouchableOpacity
+          style={[styles.sidebarOption, sessionType === 'Group class' && styles.sidebarOptionActive]}
+          onPress={() => setSessionType('Group class')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.sidebarOptionText, sessionType === 'Group class' && styles.sidebarOptionTextActive]}>
+            Group class
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sidebarOption, sessionType === 'Private Session' && styles.sidebarOptionActive]}
+          onPress={() => setSessionType('Private Session')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.sidebarOptionText, sessionType === 'Private Session' && styles.sidebarOptionTextActive]}>
+            Private Session
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {PRICING_PACKAGES.map((pkg) => (
-        <View key={pkg.id} style={styles.pricingCard}>
-          {pkg.discount && (
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>{pkg.discount}</Text>
-            </View>
-          )}
-          <Text style={styles.packageName}>{pkg.name}</Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.packagePrice}>₹{pkg.price.toLocaleString()}</Text>
-            <View style={styles.creditPack}>
-              <Ionicons name="star" size={14} color="#f6cf92" />
-              <Text style={styles.creditPackText}>{pkg.credits} credits</Text>
-            </View>
-          </View>
-          <View style={styles.validityRow}>
-            <Ionicons name="time-outline" size={14} color="#666" />
-            <Text style={styles.validityText}>{pkg.validity}</Text>
-          </View>
-          <Text style={styles.packageDesc}>{pkg.description}</Text>
-          <TouchableOpacity style={styles.buyButton} activeOpacity={0.8}>
-            <Text style={styles.buyButtonText}>Buy now</Text>
-          </TouchableOpacity>
+      {/* Pricing Content */}
+      <ScrollView style={styles.pricingScroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.pricingHeader}>
+          <Ionicons name="information-circle-outline" size={16} color="#f6cf92" />
+          <Text style={styles.creditInfo}>1 credit = ₹599 INR</Text>
         </View>
-      ))}
-    </ScrollView>
+
+        {sessionType === 'Group class' ? (
+          PRICING_PACKAGES.map((pkg) => (
+            <View key={pkg.id} style={styles.pricingCard}>
+              {pkg.discount && (
+                <View style={styles.discountBadge}>
+                  <Text style={styles.discountText}>{pkg.discount}</Text>
+                </View>
+              )}
+              <Text style={styles.packageName}>{pkg.name}</Text>
+              <View style={styles.priceRow}>
+                <Text style={styles.packagePrice}>₹{pkg.price.toLocaleString()}</Text>
+                <View style={styles.creditPack}>
+                  <Text style={styles.creditPackLabel}>Credit Pack</Text>
+                  <View style={styles.creditBadge}>
+                    <Ionicons name="star" size={12} color="#f6cf92" />
+                    <Text style={styles.creditPackText}>{pkg.credits} credits</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.detailsRow}>
+                <View style={styles.detailItem}>
+                  <Ionicons name="time-outline" size={14} color="#666" />
+                  <Text style={styles.detailText}>{pkg.validity}</Text>
+                </View>
+                {pkg.location && (
+                  <View style={styles.detailItem}>
+                    <Ionicons name="location-outline" size={14} color="#666" />
+                    <Text style={styles.detailText}>{pkg.location}</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.packageDesc}>{pkg.description}</Text>
+              <TouchableOpacity style={styles.buyButton} activeOpacity={0.8}>
+                <Text style={styles.buyButtonText}>Buy now</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        ) : (
+          PRIVATE_SESSIONS.map((session) => (
+            <View key={session.id} style={styles.pricingCard}>
+              <Text style={styles.packageName}>{session.name}</Text>
+              <View style={styles.priceRow}>
+                <Text style={styles.packagePrice}>₹{session.price.toLocaleString()}</Text>
+                <View style={styles.creditPack}>
+                  <Text style={styles.creditPackLabel}>Credit Pack</Text>
+                  <View style={styles.creditBadge}>
+                    <Ionicons name="star" size={12} color="#f6cf92" />
+                    <Text style={styles.creditPackText}>{session.credits} credits</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.detailsRow}>
+                <View style={styles.detailItem}>
+                  <Ionicons name="time-outline" size={14} color="#666" />
+                  <Text style={styles.detailText}>{session.validity}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Ionicons name="location-outline" size={14} color="#666" />
+                  <Text style={styles.detailText}>{session.location}</Text>
+                </View>
+              </View>
+              <Text style={styles.packageDesc}>{session.description}</Text>
+              <TouchableOpacity style={styles.buyButton} activeOpacity={0.8}>
+                <Text style={styles.buyButtonText}>Buy now</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </View>
   );
 
   const renderConsultationTab = () => (
