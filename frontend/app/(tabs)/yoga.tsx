@@ -271,7 +271,11 @@ export default function YogaScreen() {
                 )}
               </View>
               <Text style={styles.packageDesc}>{pkg.description}</Text>
-              <TouchableOpacity style={styles.buyButton} activeOpacity={0.8}>
+              <TouchableOpacity 
+                style={styles.buyButton} 
+                activeOpacity={0.8}
+                onPress={() => handleBuyPackage(pkg)}
+              >
                 <Text style={styles.buyButtonText}>Buy now</Text>
               </TouchableOpacity>
             </View>
