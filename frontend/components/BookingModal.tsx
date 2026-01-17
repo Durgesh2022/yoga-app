@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   proceedButton: {
-    backgroundColor: '#5DADE2',
+    backgroundColor: '#f6cf92',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   proceedButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   backButton: {
     backgroundColor: 'transparent',
@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#5DADE2',
+    borderColor: '#f6cf92',
   },
   backButtonText: {
-    color: '#5DADE2',
+    color: '#f6cf92',
     fontSize: 16,
     fontWeight: '600',
   },
