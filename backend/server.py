@@ -657,32 +657,45 @@ async def create_razorpay_order(request: CreateOrderRequest):
 async def verify_payment(request: VerifyPaymentRequest):
     """Verify Razorpay payment and add balance to wallet"""
     try:
-        # Verify signature
-        message = f"{request.razorpay_order_id}|{request.razorpay_payment_id}"
-        generated_signature = hmac.new(
-            razorpay_key_secret.encode(),
-            message.encode(),
-            hashlib.sha256
-        ).hexdigest()
-        
-        if generated_signature != request.razorpay_signature:
+        # 1. Prevent duplicate processing
+        existing_order = await db.payment_orders.find_one({
+            "order_id": request.razorpay_order_id,
+            "status": "completed"
+        })
+        if existing_order:
+            user = await db.users.find_one({"id": request.user_id})
+            return {
+                "success": True,
+                "message": "Payment already processed",
+                "new_balance": user.get("wallet_balance", 0) if user else 0
+            }
+
+        # 2. Verify signature using Razorpay SDK
+        try:
+            razorpay_client.utility.verify_payment_signature({
+                "razorpay_order_id": request.razorpay_order_id,
+                "razorpay_payment_id": request.razorpay_payment_id,
+                "razorpay_signature": request.razorpay_signature
+            })
+        except razorpay.errors.SignatureVerificationError:
             raise HTTPException(status_code=400, detail="Invalid payment signature")
-        
-        # Get user's current balance
+
+        # 3. Check if user exists
         user = await db.users.find_one({"id": request.user_id})
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
-        current_balance = user.get("wallet_balance", 0)
-        new_balance = current_balance + request.amount
-        
-        # Update user's wallet balance
+
+        # 4. Atomic wallet credit using $inc for thread safety
         await db.users.update_one(
             {"id": request.user_id},
-            {"$set": {"wallet_balance": new_balance}}
+            {"$inc": {"wallet_balance": request.amount}}
         )
-        
-        # Update order status
+
+        # 5. Get updated user to fetch new balance
+        user = await db.users.find_one({"id": request.user_id})
+        new_balance = user.get("wallet_balance", 0)
+
+        # 6. Mark order as completed
         await db.payment_orders.update_one(
             {"order_id": request.razorpay_order_id},
             {"$set": {
@@ -691,30 +704,33 @@ async def verify_payment(request: VerifyPaymentRequest):
                 "completed_at": datetime.utcnow()
             }}
         )
-        
-        # Create transaction record
+
+        # 7. Create transaction record
         transaction = TransactionRecord(
             user_id=request.user_id,
             type="credit",
             amount=request.amount,
             balance_after=new_balance,
-            description=f"Wallet recharge via Razorpay",
+            description="Wallet recharge via Razorpay",
             payment_id=request.razorpay_payment_id,
             order_id=request.razorpay_order_id,
         )
         await db.transactions.insert_one(transaction.dict())
-        
+
+        logger.info(f"Payment verified successfully for user {request.user_id}, amount: {request.amount}, new balance: {new_balance}")
+
         return {
             "success": True,
             "message": "Payment verified successfully",
             "new_balance": new_balance,
             "transaction_id": transaction.id
         }
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error verifying payment: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Payment verification failed: {str(e)}")
+        logger.error(f"Payment verification error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Payment verification failed")
 
 
 # Get User Wallet Balance
