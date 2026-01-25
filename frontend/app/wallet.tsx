@@ -10,12 +10,12 @@ import {
   Modal,
   ActivityIndicator,
   Platform,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../context/UserContext';
+import { WebView } from 'react-native-webview';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api` : 'https://cosmic-healing-1.preview.emergentagent.com/api';
 const RAZORPAY_KEY_ID = process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_RN3ZMbtDzMZOLC';
@@ -47,6 +47,10 @@ export default function WalletScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showInsufficientModal, setShowInsufficientModal] = useState(false);
+  const [showPaymentWebView, setShowPaymentWebView] = useState(false);
+  const [paymentHtml, setPaymentHtml] = useState('');
+  const [pendingAmount, setPendingAmount] = useState(0);
+  const [pendingOrderId, setPendingOrderId] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [shortfall, setShortfall] = useState(0);
 
@@ -58,7 +62,6 @@ export default function WalletScreen() {
       if (response.ok) {
         const data = await response.json();
         setBalance(data.balance);
-        // Update user context with new balance
         if (updateUser) {
           updateUser({ ...user, wallet_balance: data.balance });
         }
@@ -72,7 +75,6 @@ export default function WalletScreen() {
     fetchWalletBalance();
   }, [fetchWalletBalance]);
 
-  // Get appropriate title and description based on booking type
   const getBookingTitle = () => {
     if (isFreeConsultation) return 'Consultation Booked!';
     if (bookingType === 'yoga_class') return 'Class Booking';
@@ -94,6 +96,97 @@ export default function WalletScreen() {
     return `${serviceName} with ${astrologerName}`;
   };
 
+  // Generate Razorpay HTML for WebView
+  const generateRazorpayHtml = (orderData: any, amount: number) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <style>
+          body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+          .loading {
+            text-align: center;
+            color: #666;
+          }
+          .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f6cf92;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+          }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Opening payment gateway...</p>
+        </div>
+        <script>
+          var options = {
+            key: '${RAZORPAY_KEY_ID}',
+            amount: ${orderData.amount},
+            currency: '${orderData.currency}',
+            name: 'Celestials Healing',
+            description: 'Wallet Recharge - ₹${amount}',
+            order_id: '${orderData.order_id}',
+            prefill: {
+              name: '${user?.full_name || ''}',
+              email: '${user?.email || ''}',
+              contact: '${user?.phone || ''}'
+            },
+            theme: {
+              color: '#f6cf92'
+            },
+            handler: function(response) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'success',
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+              }));
+            },
+            modal: {
+              ondismiss: function() {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'dismissed'
+                }));
+              }
+            }
+          };
+          
+          setTimeout(function() {
+            var rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'failed',
+                error: response.error.description
+              }));
+            });
+            rzp.open();
+          }, 1000);
+        </script>
+      </body>
+      </html>
+    `;
+  };
+
   // Handle Razorpay Payment
   const handleAddBalance = async () => {
     if (!user?.id) {
@@ -109,7 +202,6 @@ export default function WalletScreen() {
 
     setIsLoading(true);
     try {
-      // Create Razorpay order
       const orderResponse = await fetch(`${API_URL}/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,14 +219,13 @@ export default function WalletScreen() {
         throw new Error(orderData.detail || 'Failed to create order');
       }
 
-      // Open Razorpay checkout
-      if (Platform.OS === 'web') {
-        // For web, use Razorpay checkout.js
-        openRazorpayWeb(orderData, amount);
-      } else {
-        // For mobile, use react-native-razorpay
-        openRazorpayMobile(orderData, amount);
-      }
+      // Generate HTML and show WebView
+      const html = generateRazorpayHtml(orderData, amount);
+      setPaymentHtml(html);
+      setPendingAmount(amount);
+      setPendingOrderId(orderData.order_id);
+      setShowPaymentWebView(true);
+      
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to initiate payment');
     } finally {
@@ -142,100 +233,53 @@ export default function WalletScreen() {
     }
   };
 
-  // Razorpay Web Checkout
-  const openRazorpayWeb = (orderData: any, amount: number) => {
-    const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: orderData.amount,
-      currency: orderData.currency,
-      name: 'Celestials Healing',
-      description: 'Wallet Recharge',
-      order_id: orderData.order_id,
-      handler: async (response: any) => {
-        await verifyPayment(response, amount);
-      },
-      prefill: {
-        name: user?.full_name || '',
-        email: user?.email || '',
-        contact: user?.phone || '',
-      },
-      theme: {
-        color: '#f6cf92',
-      },
-    };
-
-    // @ts-ignore - Razorpay is loaded via script
-    if (typeof window !== 'undefined' && window.Razorpay) {
-      // @ts-ignore
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } else {
-      Alert.alert('Error', 'Payment gateway not available. Please try again.');
-    }
-  };
-
-  // Razorpay Mobile Checkout
-  const openRazorpayMobile = async (orderData: any, amount: number) => {
+  // Handle WebView messages
+  const handleWebViewMessage = async (event: any) => {
     try {
-      const RazorpayCheckout = require('react-native-razorpay').default;
+      const data = JSON.parse(event.nativeEvent.data);
       
-      const options = {
-        description: 'Wallet Recharge',
-        image: 'https://your-logo-url.com/logo.png',
-        currency: orderData.currency,
-        key: RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        name: 'Celestials Healing',
-        order_id: orderData.order_id,
-        prefill: {
-          email: user?.email || '',
-          contact: user?.phone || '',
-          name: user?.full_name || '',
-        },
-        theme: { color: '#f6cf92' },
-      };
+      if (data.type === 'success') {
+        setShowPaymentWebView(false);
+        setIsLoading(true);
+        
+        // Verify payment
+        const verifyResponse = await fetch(`${API_URL}/payment/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user?.id,
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_payment_id: data.razorpay_payment_id,
+            razorpay_signature: data.razorpay_signature,
+            amount: pendingAmount,
+          }),
+        });
 
-      const response = await RazorpayCheckout.open(options);
-      await verifyPayment(response, amount);
-    } catch (error: any) {
-      if (error.code !== 'PAYMENT_CANCELLED') {
-        Alert.alert('Payment Failed', error.description || 'Payment was not completed');
-      }
-    }
-  };
+        const verifyData = await verifyResponse.json();
 
-  // Verify Payment with Backend
-  const verifyPayment = async (response: any, amount: number) => {
-    setIsLoading(true);
-    try {
-      const verifyResponse = await fetch(`${API_URL}/payment/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user?.id,
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-          amount: amount,
-        }),
-      });
-
-      const verifyData = await verifyResponse.json();
-
-      if (verifyData.success) {
-        setBalance(verifyData.new_balance);
-        if (updateUser && user) {
-          updateUser({ ...user, wallet_balance: verifyData.new_balance });
+        if (verifyData.success) {
+          setBalance(verifyData.new_balance);
+          if (updateUser && user) {
+            updateUser({ ...user, wallet_balance: verifyData.new_balance });
+          }
+          setSuccessMessage(`₹${pendingAmount} added to your wallet successfully!`);
+          setShowSuccessModal(true);
+        } else {
+          Alert.alert('Error', verifyData.message || 'Payment verification failed');
         }
-        setSuccessMessage(`₹${amount} added to your wallet successfully!`);
-        setShowSuccessModal(true);
-      } else {
-        throw new Error(verifyData.message || 'Payment verification failed');
+        setIsLoading(false);
+        
+      } else if (data.type === 'dismissed') {
+        setShowPaymentWebView(false);
+        // Don't show error for user-cancelled payments
+        
+      } else if (data.type === 'failed') {
+        setShowPaymentWebView(false);
+        Alert.alert('Payment Failed', data.error || 'Payment was not completed');
       }
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Payment verification failed');
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error('WebView message error:', error);
+      setShowPaymentWebView(false);
     }
   };
 
@@ -246,7 +290,6 @@ export default function WalletScreen() {
       return;
     }
 
-    // Check if sufficient balance
     if (balance < bookingAmount) {
       setShortfall(bookingAmount - balance);
       setShowInsufficientModal(true);
@@ -291,6 +334,33 @@ export default function WalletScreen() {
     }
   };
 
+  // Payment WebView Modal
+  const PaymentWebViewModal = () => (
+    <Modal visible={showPaymentWebView} animationType="slide" onRequestClose={() => setShowPaymentWebView(false)}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+        <View style={styles.webViewHeader}>
+          <TouchableOpacity onPress={() => setShowPaymentWebView(false)}>
+            <Ionicons name="close" size={28} color="#333" />
+          </TouchableOpacity>
+          <Text style={styles.webViewTitle}>Complete Payment</Text>
+          <View style={{ width: 28 }} />
+        </View>
+        <WebView
+          source={{ html: paymentHtml }}
+          onMessage={handleWebViewMessage}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={true}
+          renderLoading={() => (
+            <View style={styles.webViewLoading}>
+              <ActivityIndicator size="large" color="#f6cf92" />
+            </View>
+          )}
+        />
+      </SafeAreaView>
+    </Modal>
+  );
+
   // Success Modal
   const SuccessModal = () => (
     <Modal visible={showSuccessModal} transparent animationType="fade">
@@ -307,7 +377,6 @@ export default function WalletScreen() {
             onPress={() => {
               setShowSuccessModal(false);
               if (bookingId) {
-                // Navigate based on booking type
                 if (bookingType?.includes('yoga')) {
                   router.push('/(tabs)/yoga');
                 } else {
@@ -353,7 +422,7 @@ export default function WalletScreen() {
             style={styles.addBalanceModalButton}
             onPress={() => {
               setShowInsufficientModal(false);
-              setSelectedAmount(Math.ceil(shortfall / 100) * 100); // Round up to nearest 100
+              setSelectedAmount(Math.ceil(shortfall / 100) * 100);
             }}
           >
             <Ionicons name="add-circle-outline" size={20} color="#FFF" />
@@ -385,7 +454,7 @@ export default function WalletScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Balance Card */}
           <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>Available Balance</Text>
+            <Text style={styles.balanceLabelText}>Available Balance</Text>
             <Text style={styles.balanceAmount}>₹{balance.toLocaleString()}</Text>
             <View style={styles.balanceActions}>
               <TouchableOpacity 
@@ -398,7 +467,7 @@ export default function WalletScreen() {
             </View>
           </View>
 
-          {/* Booking Payment Card (if coming from booking) */}
+          {/* Booking Payment Card */}
           {(bookingAmount !== null || isFreeConsultation) && (
             <View style={[styles.bookingCard, isFreeConsultation && styles.freeConsultationCard]}>
               <View style={styles.bookingHeader}>
@@ -412,7 +481,7 @@ export default function WalletScreen() {
               <View style={styles.bookingDetails}>
                 <Text style={styles.bookingService}>{getBookingDescription()}</Text>
                 {!isFreeConsultation && (
-                  <Text style={styles.bookingAmount}>₹{bookingAmount}</Text>
+                  <Text style={styles.bookingAmountText}>₹{bookingAmount}</Text>
                 )}
               </View>
               {isFreeConsultation ? (
@@ -494,10 +563,7 @@ export default function WalletScreen() {
                 {['UPI', 'Card', 'Net Banking'].map((method) => (
                   <TouchableOpacity
                     key={method}
-                    style={[
-                      styles.paymentMethodOption,
-                      paymentMethod === method && styles.paymentMethodSelected,
-                    ]}
+                    style={styles.paymentMethodOption}
                     onPress={() => setPaymentMethod(method)}
                   >
                     <View style={styles.radioOuter}>
@@ -541,6 +607,7 @@ export default function WalletScreen() {
       </View>
 
       {/* Modals */}
+      <PaymentWebViewModal />
       <SuccessModal />
       <InsufficientBalanceModal />
     </SafeAreaView>
@@ -587,7 +654,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
   },
-  balanceLabel: {
+  balanceLabelText: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.7)',
     marginBottom: 8,
@@ -651,7 +718,7 @@ const styles = StyleSheet.create({
     color: '#666',
     flex: 1,
   },
-  bookingAmount: {
+  bookingAmountText: {
     fontSize: 24,
     fontWeight: '700',
     color: '#f6cf92',
@@ -763,7 +830,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 12,
   },
-  paymentMethodSelected: {},
   radioOuter: {
     width: 22,
     height: 22,
@@ -810,6 +876,32 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: 40,
+  },
+  // WebView Styles
+  webViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  webViewTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  webViewLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   // Modal Styles
   modalOverlay: {
@@ -877,6 +969,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  balanceLabel: {
+    fontSize: 14,
+    color: '#666',
   },
   balanceValue: {
     fontSize: 14,
