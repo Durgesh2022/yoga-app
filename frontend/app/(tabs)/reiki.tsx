@@ -40,27 +40,6 @@ export default function ReikiScreen() {
             Experience gentle energy healing sessions designed to restore balance in your body, mind, and spirit. Our certified Reiki practitioners will help you find your path to wellness.
           </Text>
 
-          <View style={styles.featuresContainer}>
-            <View style={styles.feature}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
-              </View>
-              <Text style={styles.featureText}>Certified Practitioners</Text>
-            </View>
-            <View style={styles.feature}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
-              </View>
-              <Text style={styles.featureText}>Personalized Sessions</Text>
-            </View>
-            <View style={styles.feature}>
-              <View style={styles.featureIcon}>
-                <Ionicons name="checkmark-circle" size={20} color="#4ADE80" />
-              </View>
-              <Text style={styles.featureText}>Holistic Healing</Text>
-            </View>
-          </View>
-
           <TouchableOpacity style={styles.notifyButton}>
             <Ionicons name="notifications" size={18} color="#FFFFFF" />
             <Text style={styles.notifyButtonText}>Notify me when available</Text>
@@ -141,34 +120,7 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 32,
-  },
-  featuresContainer: {
-    width: '100%',
-    marginBottom: 32,
-  },
-  feature: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-    gap: 12,
-  },
-  featureIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F0FDF4',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  featureText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
+    marginBottom: 40,
   },
   notifyButton: {
     flexDirection: 'row',
