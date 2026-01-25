@@ -108,22 +108,37 @@ export default function WalletScreen() {
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Booking Payment Card (if coming from booking) */}
-          {bookingAmount && (
-            <View style={styles.bookingCard}>
+          {(bookingAmount !== null || isFreeConsultation) && (
+            <View style={[styles.bookingCard, isFreeConsultation && styles.freeConsultationCard]}>
               <View style={styles.bookingHeader}>
-                <Ionicons name="calendar" size={24} color="#f6cf92" />
-                <Text style={styles.bookingTitle}>Payment Required</Text>
+                <Ionicons 
+                  name={isFreeConsultation ? "checkmark-circle" : "calendar"} 
+                  size={24} 
+                  color={isFreeConsultation ? "#4ADE80" : "#f6cf92"} 
+                />
+                <Text style={styles.bookingTitle}>{getBookingTitle()}</Text>
               </View>
               <View style={styles.bookingDetails}>
-                <Text style={styles.bookingService}>{serviceName} with {astrologerName}</Text>
-                <Text style={styles.bookingAmount}>₹{bookingAmount}</Text>
+                <Text style={styles.bookingService}>{getBookingDescription()}</Text>
+                {!isFreeConsultation && (
+                  <Text style={styles.bookingAmount}>₹{bookingAmount}</Text>
+                )}
               </View>
-              <TouchableOpacity 
-                style={styles.payNowButton}
-                onPress={handlePayForBooking}
-              >
-                <Text style={styles.payNowText}>Pay Now</Text>
-              </TouchableOpacity>
+              {isFreeConsultation ? (
+                <TouchableOpacity 
+                  style={styles.viewYogaButton}
+                  onPress={() => router.push('/(tabs)/yoga')}
+                >
+                  <Text style={styles.viewYogaText}>View Yoga Classes</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.payNowButton}
+                  onPress={handlePayForBooking}
+                >
+                  <Text style={styles.payNowText}>Pay Now</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
