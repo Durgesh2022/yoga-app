@@ -80,6 +80,53 @@ class User(BaseModel):
     wallet_balance: float = 0.0
 
 
+# Booking Models
+class BookingCreate(BaseModel):
+    user_id: str
+    astrologer_id: str
+    astrologer_name: str
+    astrologer_expertise: str
+    astrologer_experience: str
+    astrologer_languages: str
+    service_name: str
+    service_duration: str
+    service_price: float
+    booking_date: str
+    booking_time: str
+
+class BookingResponse(BaseModel):
+    id: str
+    user_id: str
+    astrologer_id: str
+    astrologer_name: str
+    astrologer_expertise: str
+    astrologer_experience: str
+    astrologer_languages: str
+    service_name: str
+    service_duration: str
+    service_price: float
+    booking_date: str
+    booking_time: str
+    status: str
+    created_at: datetime
+
+class Booking(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    astrologer_id: str
+    astrologer_name: str
+    astrologer_expertise: str
+    astrologer_experience: str
+    astrologer_languages: str
+    service_name: str
+    service_duration: str
+    service_price: float
+    booking_date: str
+    booking_time: str
+    status: str = "pending"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 def hash_password(password: str) -> str:
     """Simple password hashing using SHA256"""
     return hashlib.sha256(password.encode()).hexdigest()
