@@ -1,21 +1,103 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useUser } from '../context/UserContext';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://cosmic-healing-1.preview.emergentagent.com/api';
+
+// Helper function to get connection method label
+const getConnectionMethodLabel = (id: string) => {
+  const methods: { [key: string]: string } = {
+    'text': 'Text + voice notes',
+    'voice': 'Voice call (15 mins)',
+    'video': 'Video call (20 mins)',
+  };
+  return methods[id] || 'Voice call (15 mins)';
+};
+
+// Helper function to get schedule timing label
+const getScheduleTimingLabel = (id: string) => {
+  const timings: { [key: string]: string } = {
+    'now': 'Within 30 mins',
+    'evening': 'This evening (6–10 PM)',
+    'tomorrow': 'Tomorrow morning',
+    'custom': 'Custom time',
+  };
+  return timings[id] || 'This evening (6–10 PM)';
+};
 
 export default function ConsultationConfirmScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Get consultation data from params
+  const yogaGoal = params.yogaGoal as string || '';
+  const intensityPreference = params.intensityPreference as string || 'Balanced';
+  const connectionMethod = params.connectionMethod as string || 'voice';
+  const scheduleTiming = params.scheduleTiming as string || 'evening';
+  const contextNotes = params.contextNotes as string || '';
 
-  const handleConfirmBooking = () => {
-    console.log('Consultation confirmed');
-    router.push('/(tabs)/yoga');
+  const handleConfirmBooking = async () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to book a consultation', [
+        { text: 'OK', onPress: () => router.push('/') }
+      ]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/yoga/consultation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          yoga_goal: yogaGoal,
+          intensity_preference: intensityPreference,
+          connection_method: connectionMethod,
+          schedule_timing: scheduleTiming,
+          context_notes: contextNotes,
+          whatsapp_number: user.phone || '',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Booking failed');
+      }
+
+      // Navigate to wallet with consultation info (free consultation)
+      router.push({
+        pathname: '/wallet',
+        params: {
+          bookingId: data.id,
+          amount: 0,
+          serviceName: 'Yoga Consultation',
+          astrologerName: 'Certified yoga therapist',
+          bookingType: 'yoga_consultation',
+          isFreeConsultation: 'true',
+        }
+      });
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to book consultation');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -48,13 +130,27 @@ export default function ConsultationConfirmScreen() {
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Format</Text>
-              <Text style={styles.detailValue}>Voice call (15 mins)</Text>
+              <Text style={styles.detailValue}>{getConnectionMethodLabel(connectionMethod)}</Text>
             </View>
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>When</Text>
-              <Text style={styles.detailValue}>This evening (6–10 PM)</Text>
+              <Text style={styles.detailValue}>{getScheduleTimingLabel(scheduleTiming)}</Text>
             </View>
+            
+            {yogaGoal ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Your goal</Text>
+                <Text style={styles.detailValue}>{yogaGoal}</Text>
+              </View>
+            ) : null}
+            
+            {intensityPreference ? (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Intensity</Text>
+                <Text style={styles.detailValue}>{intensityPreference}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.consultantRow}>
               <View style={styles.consultantAvatar}>
@@ -108,7 +204,7 @@ export default function ConsultationConfirmScreen() {
             <View style={styles.phoneRow}>
               <View>
                 <Text style={styles.phoneLabel}>WhatsApp number</Text>
-                <Text style={styles.phoneNumber}>+91 98XXXXXX10</Text>
+                <Text style={styles.phoneNumber}>{user?.phone || '+91 98XXXXXX10'}</Text>
               </View>
               <TouchableOpacity style={styles.changeButton}>
                 <Text style={styles.changeText}>Change</Text>
@@ -128,8 +224,16 @@ export default function ConsultationConfirmScreen() {
           </View>
 
           {/* Confirm Button */}
-          <TouchableOpacity style={styles.confirmButton} onPress={handleConfirmBooking}>
-            <Text style={styles.confirmButtonText}>Confirm & book call</Text>
+          <TouchableOpacity 
+            style={[styles.confirmButton, isLoading && styles.confirmButtonDisabled]} 
+            onPress={handleConfirmBooking}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.confirmButtonText}>Confirm & book call</Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.whyFreeButton}>
