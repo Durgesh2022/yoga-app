@@ -237,10 +237,18 @@ export default function WalletScreen() {
   const handleWebViewMessage = async (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
+      console.log('Payment WebView response:', data);
       
       if (data.type === 'success') {
         setShowPaymentWebView(false);
         setIsLoading(true);
+        
+        console.log('Verifying payment...', {
+          user_id: user?.id,
+          razorpay_order_id: data.razorpay_order_id,
+          razorpay_payment_id: data.razorpay_payment_id,
+          amount: pendingAmount,
+        });
         
         // Verify payment
         const verifyResponse = await fetch(`${API_URL}/payment/verify`, {
@@ -256,6 +264,7 @@ export default function WalletScreen() {
         });
 
         const verifyData = await verifyResponse.json();
+        console.log('Payment verification response:', verifyData);
 
         if (verifyData.success) {
           setBalance(verifyData.new_balance);
