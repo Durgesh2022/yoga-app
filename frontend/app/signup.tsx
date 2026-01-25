@@ -19,7 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from '../context/UserContext';
 
-const API_URL = '/api';
+// Use full URL for Expo Go compatibility
+const API_URL = 'https://healing-hub-24.preview.emergentagent.com/api';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
 
