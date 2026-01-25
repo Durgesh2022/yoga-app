@@ -240,20 +240,34 @@ const styles = StyleSheet.create({
     color: '#333',
     flex: 1,
   },
-  closeIcon: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   validityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 8,
   },
   validityText: {
     fontSize: 13,
     color: '#666',
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+  },
+  priceLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  priceValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#f6cf92',
   },
   paymentSection: {
     marginBottom: 24,
@@ -300,6 +314,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    opacity: 0.7,
   },
   confirmButtonText: {
     color: '#FFFFFF',
