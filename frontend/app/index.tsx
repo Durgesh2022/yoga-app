@@ -18,7 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from '../context/UserContext';
 
-const API_URL = '/api';
+// Use full URL for Expo Go compatibility
+const API_URL = 'https://healing-hub-24.preview.emergentagent.com/api';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -175,26 +176,6 @@ export default function LoginScreen() {
               >
                 <Text style={styles.signupButtonText}>Sign up</Text>
               </TouchableOpacity>
-
-              {/* Divider */}
-              <View style={styles.dividerContainer}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>Or continue with</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              {/* Social Login Buttons */}
-              <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-                  <Ionicons name="logo-google" size={20} color="#333" />
-                  <Text style={styles.socialButtonText}>Google</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-                  <Ionicons name="logo-apple" size={20} color="#333" />
-                  <Text style={styles.socialButtonText}>Apple</Text>
-                </TouchableOpacity>
-              </View>
 
               {/* Quick Access (for testing) */}
               <TouchableOpacity 
@@ -362,46 +343,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E0E0E0',
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 13,
-    color: '#999',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  socialButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    gap: 8,
-  },
-  socialButtonText: {
-    fontSize: 15,
-    color: '#333',
-    fontWeight: '500',
-  },
   quickAccessButton: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 20,
     paddingVertical: 12,
   },
   quickAccessText: {
