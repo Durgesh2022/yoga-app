@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,63 @@ import {
   Platform,
   ScrollView,
   Keyboard,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
+
+const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || '/api';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Simply redirect to main app
+  const handleLogin = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email');
+      return;
+    }
+    if (!password) {
+      Alert.alert('Error', 'Please enter your password');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Login failed');
+      }
+
+      // Login successful - navigate to main app
+      router.replace('/(tabs)/astrology');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleQuickLogin = () => {
+    // Quick login for testing - bypasses authentication
     router.replace('/(tabs)/astrology');
   };
 
@@ -37,9 +84,7 @@ export default function LoginScreen() {
           >
             {/* Header */}
             <View style={styles.header}>
-              <TouchableOpacity style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#333" />
-              </TouchableOpacity>
+              <View style={styles.backButton} />
               <Text style={styles.headerTitle}>Login</Text>
               <View style={styles.placeholder} />
             </View>
@@ -67,13 +112,15 @@ export default function LoginScreen() {
             <View style={styles.formContainer}>
               {/* Email Input */}
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email or phone</Text>
+                <Text style={styles.inputLabel}>Email</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter email or phone"
+                  placeholder="Enter your email"
                   placeholderTextColor="#999"
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
                 />
               </View>
 
@@ -85,21 +132,35 @@ export default function LoginScreen() {
                     style={styles.passwordInput}
                     placeholder="Enter password"
                     placeholderTextColor="#999"
-                    secureTextEntry={true}
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
                   />
-                  <View style={styles.eyeIcon}>
-                    <Ionicons name="eye-off-outline" size={24} color="#999" />
-                  </View>
+                  <TouchableOpacity 
+                    style={styles.eyeIcon}
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Ionicons 
+                      name={showPassword ? 'eye-outline' : 'eye-off-outline'} 
+                      size={22} 
+                      color="#999" 
+                    />
+                  </TouchableOpacity>
                 </View>
               </View>
 
               {/* Login Button */}
               <TouchableOpacity
-                style={styles.loginButton}
+                style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
                 onPress={handleLogin}
                 activeOpacity={0.8}
+                disabled={isLoading}
               >
-                <Text style={styles.loginButtonText}>Login</Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Login</Text>
+                )}
               </TouchableOpacity>
 
               {/* Sign Up Button */}
@@ -130,6 +191,14 @@ export default function LoginScreen() {
                   <Text style={styles.socialButtonText}>Apple</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Quick Access (for testing) */}
+              <TouchableOpacity 
+                style={styles.quickAccessButton}
+                onPress={handleQuickLogin}
+              >
+                <Text style={styles.quickAccessText}>Continue as Guest</Text>
+              </TouchableOpacity>
 
               {/* Forgot Password */}
               <TouchableOpacity style={styles.forgotPasswordContainer}>
@@ -166,11 +235,9 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#333',
   },
@@ -179,36 +246,36 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
     marginBottom: 24,
   },
   logoCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: '#FFF9F0',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#f6cf92',
+    shadowColor: '#D4A574',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
   },
   logo: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
   },
   welcomeContainer: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
   welcomeTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: '#333',
     textAlign: 'center',
     marginBottom: 8,
-    lineHeight: 32,
+    lineHeight: 30,
   },
   welcomeSubtitle: {
     fontSize: 14,
@@ -221,11 +288,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#333',
     marginBottom: 8,
     fontWeight: '500',
   },
@@ -258,22 +325,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   loginButton: {
-    backgroundColor: '#f6cf92',
+    backgroundColor: '#D4A574',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
-    marginBottom: 16,
-    shadowColor: '#f6cf92',
+    marginBottom: 12,
+    shadowColor: '#D4A574',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
+  loginButtonDisabled: {
+    opacity: 0.7,
+  },
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   signupButton: {
     backgroundColor: 'transparent',
@@ -281,17 +351,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#f6cf92',
+    borderColor: '#D4A574',
   },
   signupButtonText: {
-    color: '#f6cf92',
+    color: '#D4A574',
     fontSize: 16,
     fontWeight: '600',
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
@@ -325,13 +395,24 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  quickAccessButton: {
+    alignItems: 'center',
+    marginTop: 16,
+    paddingVertical: 12,
+  },
+  quickAccessText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
   forgotPasswordContainer: {
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 8,
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#f6cf92',
+    color: '#D4A574',
     fontWeight: '500',
   },
 });
