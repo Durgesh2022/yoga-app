@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 const CONNECTION_METHODS = [
   { id: 'text', label: 'Text + voice notes' },
@@ -26,12 +26,27 @@ const SCHEDULE_OPTIONS = [
 
 export default function TalkToExpertScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  
+  // Get yoga preferences from previous screen
+  const yogaGoal = params.yogaGoal as string || '';
+  const intensityPreference = params.intensityPreference as string || 'Balanced';
+  
   const [connectionMethod, setConnectionMethod] = useState('text');
   const [scheduleTiming, setScheduleTiming] = useState('now');
   const [contextText, setContextText] = useState('');
 
   const handleConfirmConsultation = () => {
-    router.push('/consultation-confirm');
+    router.push({
+      pathname: '/consultation-confirm',
+      params: {
+        yogaGoal,
+        intensityPreference,
+        connectionMethod,
+        scheduleTiming,
+        contextNotes: contextText,
+      }
+    });
   };
 
   return (
