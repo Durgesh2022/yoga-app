@@ -6,10 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useUser } from '../context/UserContext';
 
 const AMOUNT_OPTIONS = [
   { value: 500, label: '₹500' },
@@ -20,13 +22,52 @@ const AMOUNT_OPTIONS = [
 
 export default function WalletScreen() {
   const router = useRouter();
-  const [selectedAmount, setSelectedAmount] = useState(500);
+  const params = useLocalSearchParams();
+  const { user } = useUser();
+  
+  // Check if coming from a booking
+  const bookingAmount = params.amount ? Number(params.amount) : null;
+  const bookingId = params.bookingId as string;
+  const serviceName = params.serviceName as string;
+  const astrologerName = params.astrologerName as string;
+  
+  const [selectedAmount, setSelectedAmount] = useState(bookingAmount || 500);
   const [customAmount, setCustomAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('UPI');
-  const balance = 2450;
+  const balance = user?.wallet_balance || 0;
 
   const handleAddBalance = () => {
-    console.log('Adding balance:', selectedAmount || customAmount);
+    const amount = customAmount ? Number(customAmount) : selectedAmount;
+    Alert.alert(
+      'Add Balance',
+      `Add ₹${amount} to your wallet?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Confirm', 
+          onPress: () => {
+            Alert.alert('Success', `₹${amount} added to your wallet!`);
+          }
+        }
+      ]
+    );
+  };
+
+  const handlePayForBooking = () => {
+    if (balance >= (bookingAmount || 0)) {
+      Alert.alert(
+        'Payment Successful',
+        `Your session with ${astrologerName} for ${serviceName} has been booked!`,
+        [
+          { text: 'OK', onPress: () => router.push('/(tabs)/astrology') }
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Insufficient Balance',
+        `You need ₹${(bookingAmount || 0) - balance} more. Please add funds to continue.`
+      );
+    }
   };
 
   return (
@@ -42,6 +83,26 @@ export default function WalletScreen() {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Booking Payment Card (if coming from booking) */}
+          {bookingAmount && (
+            <View style={styles.bookingCard}>
+              <View style={styles.bookingHeader}>
+                <Ionicons name="calendar" size={24} color="#f6cf92" />
+                <Text style={styles.bookingTitle}>Payment Required</Text>
+              </View>
+              <View style={styles.bookingDetails}>
+                <Text style={styles.bookingService}>{serviceName} with {astrologerName}</Text>
+                <Text style={styles.bookingAmount}>₹{bookingAmount}</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.payNowButton}
+                onPress={handlePayForBooking}
+              >
+                <Text style={styles.payNowText}>Pay Now</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Balance Card */}
           <View style={styles.balanceCard}>
             <View style={styles.balanceRow}>
