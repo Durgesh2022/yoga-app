@@ -731,6 +731,44 @@ async def get_wallet_balance(user_id: str):
     }
 
 
+# Admin: Manually Add Balance (for testing or manual verification)
+class ManualBalanceAdd(BaseModel):
+    user_id: str
+    amount: float
+    reason: str = "Manual addition"
+
+@api_router.post("/wallet/manual-add")
+async def manual_add_balance(request: ManualBalanceAdd):
+    """Manually add balance to user's wallet (admin endpoint)"""
+    user = await db.users.find_one({"id": request.user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    current_balance = user.get("wallet_balance", 0)
+    new_balance = current_balance + request.amount
+    
+    await db.users.update_one(
+        {"id": request.user_id},
+        {"$set": {"wallet_balance": new_balance}}
+    )
+    
+    # Create transaction record
+    transaction = TransactionRecord(
+        user_id=request.user_id,
+        type="credit",
+        amount=request.amount,
+        balance_after=new_balance,
+        description=request.reason,
+    )
+    await db.transactions.insert_one(transaction.dict())
+    
+    return {
+        "success": True,
+        "message": f"₹{request.amount} added successfully",
+        "new_balance": new_balance
+    }
+
+
 # Deduct from Wallet (for bookings)
 @api_router.post("/wallet/deduct")
 async def deduct_from_wallet(request: WalletDeductRequest):
