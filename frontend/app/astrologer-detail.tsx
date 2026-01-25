@@ -320,7 +320,7 @@ export default function AstrologerDetailScreen() {
               {/* Choose date */}
               <Text style={styles.sectionLabel}>Choose date</Text>
               <View style={styles.tabsRow}>
-                {['Mon, 2 Dec', 'Tue, 3 Dec', 'Wed, 4 Dec'].map((date) => (
+                {AVAILABLE_DATES.map((date) => (
                   <TouchableOpacity
                     key={date}
                     style={[styles.tab, selectedDate === date && styles.tabSelected]}
