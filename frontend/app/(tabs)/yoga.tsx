@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,26 @@ import { useRouter } from 'expo-router';
 import BookingModal from '@/components/BookingModal';
 import PackageConfirmModal from '@/components/PackageConfirmModal';
 
+// Helper function to get next 4 days including today
+const getNext4Days = () => {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dates = [];
+  
+  for (let i = 0; i < 4; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    const dayName = days[date.getDay()];
+    const dayNum = date.getDate();
+    const monthName = months[date.getMonth()];
+    dates.push(`${dayName}, ${dayNum} ${monthName}`);
+  }
+  
+  return dates;
+};
+
+const DATES = getNext4Days();
+
 const YOGA_CLASSES = [
   {
     id: 1,
@@ -22,7 +42,7 @@ const YOGA_CLASSES = [
     guru: 'Assigned Guru',
     credits: 1,
     price: 599,
-    date: 'Mon, 2 Dec',
+    date: DATES[0],
     level: 'Beginner',
   },
   {
@@ -32,7 +52,7 @@ const YOGA_CLASSES = [
     guru: 'Guru Mira',
     credits: 1,
     price: 699,
-    date: 'Mon, 2 Dec',
+    date: DATES[0],
     level: 'Intermediate',
   },
   {
@@ -42,7 +62,7 @@ const YOGA_CLASSES = [
     guru: 'Guru Arjun',
     credits: 2,
     price: 799,
-    date: 'Mon, 2 Dec',
+    date: DATES[0],
     level: 'Advanced',
   },
 ];
@@ -55,17 +75,8 @@ const PRICING_PACKAGES = [
     credits: 1,
     validity: '1 week',
     description: 'Your first step into Celestials. Try your very first group yoga class at no extra cost to help guide you towards the class that best suits your pace and energy. This class is valid for one week from the date of purchase.',
-    location: 'New Delhi',
+    mode: 'Online',
     showFree: true,
-  },
-  {
-    id: 2,
-    name: 'Introductory Class',
-    price: 599,
-    credits: 1,
-    validity: '1 week',
-    description: 'Your first step into Celestials. Explore your practice with an introductory session designed to help you discover the class that aligns with your energy. This option is valid for one week from purchase date to give you flexibility while choosing. This option, our experts will help guide you towards the class an paced way to begin your journey. validity: This class is valid for one week from the date of purchase.',
-    location: 'New Delhi',
   },
   {
     id: 3,
@@ -102,7 +113,7 @@ const PRIVATE_SESSIONS = [
     credits: 10,
     validity: '2 weeks',
     description: 'Discover your unique yoga journey with a dedicated personal session.',
-    location: 'New Delhi',
+    mode: 'Online',
   },
   {
     id: 2,
@@ -111,20 +122,18 @@ const PRIVATE_SESSIONS = [
     credits: 12,
     validity: '2 weeks',
     description: 'Immerse yourself in harmony and relaxation with a private sound bath yoga experience. (This session is valid for two weeks from the date of purchase.)',
-    location: 'New Delhi',
+    mode: 'Online',
   },
 ];
-
-const DATES = ['Mon, 2 Dec', 'Tue, 3 Dec', 'Wed, 4 Dec', 'Thu, 5 Dec'];
 
 export default function YogaScreen() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('Classes');
-  const [selectedDate, setSelectedDate] = useState('Mon, 2 Dec');
+  const [selectedDate, setSelectedDate] = useState(DATES[0]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedClass, setSelectedClass] = useState(YOGA_CLASSES[0]);
   const [userCredits] = useState(6);
-  const [sessionType, setSessionType] = useState('Group class'); // Group class or Private Session
+  const [sessionType, setSessionType] = useState('Group class');
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState('UPI');
@@ -132,7 +141,6 @@ export default function YogaScreen() {
   // Consultation form states
   const [selectedGoal, setSelectedGoal] = useState('');
   const [selectedIntensity, setSelectedIntensity] = useState('Balanced');
-  const [contextText, setContextText] = useState('');
 
   const handleBookClass = (yogaClass: typeof YOGA_CLASSES[0]) => {
     setSelectedClass(yogaClass);
@@ -214,7 +222,6 @@ export default function YogaScreen() {
     <View style={styles.pricingContainer}>
       {/* Sidebar for Session Type Selection */}
       <View style={styles.sidebarContainer}>
-        <Text style={styles.sidebarTitle}>Private Session</Text>
         <TouchableOpacity
           style={[styles.sidebarOption, sessionType === 'Group class' && styles.sidebarOptionActive]}
           onPress={() => setSessionType('Group class')}
@@ -287,13 +294,13 @@ export default function YogaScreen() {
                 </View>
               </View>
               
-              {/* Location Section */}
-              {pkg.location && (
+              {/* Mode Section */}
+              {pkg.mode && (
                 <View style={styles.locationSection}>
-                  <Text style={styles.sectionHeading}>Location</Text>
+                  <Text style={styles.sectionHeading}>Mode</Text>
                   <View style={styles.detailItem}>
-                    <Ionicons name="location-outline" size={14} color="#666" />
-                    <Text style={styles.detailText}>{pkg.location}</Text>
+                    <Ionicons name="videocam-outline" size={14} color="#666" />
+                    <Text style={styles.detailText}>{pkg.mode}</Text>
                   </View>
                 </View>
               )}
@@ -347,12 +354,12 @@ export default function YogaScreen() {
                 </View>
               </View>
               
-              {/* Location Section */}
+              {/* Mode Section */}
               <View style={styles.locationSection}>
-                <Text style={styles.sectionHeading}>Location</Text>
+                <Text style={styles.sectionHeading}>Mode</Text>
                 <View style={styles.detailItem}>
-                  <Ionicons name="location-outline" size={14} color="#666" />
-                  <Text style={styles.detailText}>{session.location}</Text>
+                  <Ionicons name="videocam-outline" size={14} color="#666" />
+                  <Text style={styles.detailText}>{session.mode}</Text>
                 </View>
               </View>
               
@@ -421,18 +428,6 @@ export default function YogaScreen() {
         </View>
       </View>
 
-      {selectedGoal && selectedIntensity && (
-        <View style={styles.aiPreview}>
-          <Text style={styles.aiPreviewTitle}>AI preview</Text>
-          <Text style={styles.aiPreviewText}>
-            Based on your selections, we'll recommend gentle-to-moderate classes that help with {selectedGoal.toLowerCase()}, combining breath work and mindful movement.
-          </Text>
-          <Text style={styles.aiPreviewNote}>
-            You'll see exact class names, timings and credit use on the next step.
-          </Text>
-        </View>
-      )}
-
       <View style={styles.expertSection}>
         <LinearGradient
           colors={['#FFF9F0', '#FFE8CC']}
@@ -449,21 +444,19 @@ export default function YogaScreen() {
               <Text style={styles.expertDesc}>Chat with a certified yoga guide</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.connectButton}>
+          <TouchableOpacity 
+            style={styles.connectButton}
+            onPress={() => router.push('/talk-to-expert')}
+          >
             <Text style={styles.connectButtonText}>Connect</Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
 
       <TouchableOpacity 
-        style={styles.generateButton} 
-        activeOpacity={0.8}
-        onPress={() => router.push('/talk-to-expert')}
+        style={styles.skipButton}
+        onPress={() => setSelectedTab('Classes')}
       >
-        <Text style={styles.generateButtonText}>Generate my yoga plan</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.skipButton}>
         <Text style={styles.skipButtonText}>Skip for now, browse all classes</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -594,7 +587,6 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#FFFFFF',
   },
-  // Classes Tab Styles
   dateScroll: {
     maxHeight: 60,
     backgroundColor: '#FFFFFF',
@@ -715,7 +707,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  // Pricing Tab Styles
   pricingContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -727,13 +718,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRightWidth: 1,
     borderRightColor: '#F0F0F0',
-  },
-  sidebarTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 12,
-    paddingHorizontal: 8,
   },
   sidebarOption: {
     paddingVertical: 12,
@@ -840,14 +824,6 @@ const styles = StyleSheet.create({
   creditSection: {
     marginBottom: 16,
   },
-  creditPack: {
-    alignItems: 'flex-end',
-  },
-  creditPackLabel: {
-    fontSize: 11,
-    color: '#999',
-    marginBottom: 4,
-  },
   creditBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -872,28 +848,12 @@ const styles = StyleSheet.create({
   descriptionSection: {
     marginBottom: 16,
   },
-  detailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 12,
-  },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   detailText: {
-    fontSize: 13,
-    color: '#666',
-  },
-  validityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-  },
-  validityText: {
     fontSize: 13,
     color: '#666',
   },
@@ -913,7 +873,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  // Consultation Tab Styles
   consultationScroll: {
     flex: 1,
     paddingHorizontal: 20,
@@ -985,31 +944,6 @@ const styles = StyleSheet.create({
   selectedOptionText: {
     color: '#FFFFFF',
   },
-  aiPreview: {
-    backgroundColor: '#F0F8FF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#5DADE2',
-  },
-  aiPreviewTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#5DADE2',
-    marginBottom: 8,
-  },
-  aiPreviewText: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  aiPreviewNote: {
-    fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
-  },
   expertSection: {
     marginBottom: 24,
   },
@@ -1053,18 +987,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#f6cf92',
-  },
-  generateButton: {
-    backgroundColor: '#f6cf92',
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  generateButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   skipButton: {
     paddingVertical: 12,
