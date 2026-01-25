@@ -30,11 +30,35 @@ export default function WalletScreen() {
   const bookingId = params.bookingId as string;
   const serviceName = params.serviceName as string;
   const astrologerName = params.astrologerName as string;
+  const bookingType = params.bookingType as string;
+  const isFreeConsultation = params.isFreeConsultation === 'true';
   
   const [selectedAmount, setSelectedAmount] = useState(bookingAmount || 500);
   const [customAmount, setCustomAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const balance = user?.wallet_balance || 0;
+
+  // Get appropriate title and description based on booking type
+  const getBookingTitle = () => {
+    if (isFreeConsultation) return 'Consultation Booked!';
+    if (bookingType === 'yoga_class') return 'Class Booking';
+    if (bookingType === 'yoga_package') return 'Package Purchase';
+    if (bookingType === 'yoga_consultation') return 'Consultation Booked';
+    return 'Payment Required';
+  };
+
+  const getBookingDescription = () => {
+    if (isFreeConsultation) {
+      return `Your free yoga consultation has been scheduled. A certified yoga therapist will contact you soon.`;
+    }
+    if (bookingType === 'yoga_class') {
+      return `${serviceName} with ${astrologerName}`;
+    }
+    if (bookingType === 'yoga_package') {
+      return `${serviceName} - ${astrologerName}`;
+    }
+    return `${serviceName} with ${astrologerName}`;
+  };
 
   const handleAddBalance = () => {
     const amount = customAmount ? Number(customAmount) : selectedAmount;
