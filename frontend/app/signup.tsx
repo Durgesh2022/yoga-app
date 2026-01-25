@@ -17,10 +17,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Constants from 'expo-constants';
 import { useUser } from '../context/UserContext';
 
-const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || '/api';
+const API_URL = '/api';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
 
