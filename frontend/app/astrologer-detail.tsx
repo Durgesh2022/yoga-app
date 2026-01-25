@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,16 +16,37 @@ import { useUser } from '../context/UserContext';
 
 const API_URL = 'https://cosmic-healing-1.preview.emergentagent.com/api';
 
+// Helper function to get next 4 days including today
+const getNext4Days = () => {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dates = [];
+  
+  for (let i = 0; i < 4; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    const dayName = days[date.getDay()];
+    const dayNum = date.getDate();
+    const monthName = months[date.getMonth()];
+    dates.push(`${dayName}, ${dayNum} ${monthName}`);
+  }
+  
+  return dates;
+};
+
 export default function AstrologerDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useUser();
   
+  // Generate dynamic dates
+  const AVAILABLE_DATES = useMemo(() => getNext4Days(), []);
+  
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState('Yatra');
   const [selectedServicePrice, setSelectedServicePrice] = useState(800);
   const [selectedServiceDuration, setSelectedServiceDuration] = useState('40 min');
-  const [selectedDate, setSelectedDate] = useState('Mon, 2 Dec');
+  const [selectedDate, setSelectedDate] = useState(AVAILABLE_DATES[0]);
   const [selectedTime, setSelectedTime] = useState('7:00 PM');
   const [isLoading, setIsLoading] = useState(false);
 
