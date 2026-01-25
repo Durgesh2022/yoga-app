@@ -17,11 +17,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
+import { useUser } from '../context/UserContext';
 
 const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || '/api';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { setUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -56,6 +58,9 @@ export default function LoginScreen() {
         throw new Error(data.detail || 'Login failed');
       }
 
+      // Save user data to context
+      setUser(data);
+      
       // Login successful - navigate to main app
       router.replace('/(tabs)/astrology');
     } catch (error: any) {
