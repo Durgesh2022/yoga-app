@@ -564,6 +564,255 @@ async def get_user_yoga_bookings(user_id: str):
     }
 
 
+# ============= RAZORPAY PAYMENT INTEGRATION =============
+
+# Payment Models
+class CreateOrderRequest(BaseModel):
+    user_id: str
+    amount: float  # Amount in INR
+    currency: str = "INR"
+    purpose: str = "wallet_recharge"
+    notes: Optional[dict] = None
+
+class CreateOrderResponse(BaseModel):
+    order_id: str
+    amount: int  # Amount in paise
+    currency: str
+    razorpay_key_id: str
+
+class VerifyPaymentRequest(BaseModel):
+    user_id: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    amount: float
+
+class WalletDeductRequest(BaseModel):
+    user_id: str
+    amount: float
+    booking_id: str
+    booking_type: str  # 'astrology', 'yoga_class', 'yoga_package'
+    description: str
+
+class TransactionRecord(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    type: str  # 'credit' or 'debit'
+    amount: float
+    balance_after: float
+    description: str
+    payment_id: Optional[str] = None
+    order_id: Optional[str] = None
+    booking_id: Optional[str] = None
+    status: str = "completed"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# Create Razorpay Order
+@api_router.post("/payment/create-order", response_model=CreateOrderResponse)
+async def create_razorpay_order(request: CreateOrderRequest):
+    """Create a Razorpay order for wallet recharge"""
+    try:
+        # Amount in paise (Razorpay uses smallest currency unit)
+        amount_in_paise = int(request.amount * 100)
+        
+        order_data = {
+            "amount": amount_in_paise,
+            "currency": request.currency,
+            "receipt": f"wallet_{request.user_id}_{uuid.uuid4().hex[:8]}",
+            "notes": {
+                "user_id": request.user_id,
+                "purpose": request.purpose,
+                **(request.notes or {})
+            }
+        }
+        
+        order = razorpay_client.order.create(data=order_data)
+        
+        # Store order in database for verification
+        await db.payment_orders.insert_one({
+            "order_id": order["id"],
+            "user_id": request.user_id,
+            "amount": request.amount,
+            "amount_paise": amount_in_paise,
+            "currency": request.currency,
+            "purpose": request.purpose,
+            "status": "created",
+            "created_at": datetime.utcnow()
+        })
+        
+        return CreateOrderResponse(
+            order_id=order["id"],
+            amount=amount_in_paise,
+            currency=request.currency,
+            razorpay_key_id=razorpay_key_id
+        )
+    except Exception as e:
+        logger.error(f"Error creating Razorpay order: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create payment order: {str(e)}")
+
+
+# Verify Payment and Add Balance
+@api_router.post("/payment/verify")
+async def verify_payment(request: VerifyPaymentRequest):
+    """Verify Razorpay payment and add balance to wallet"""
+    try:
+        # Verify signature
+        message = f"{request.razorpay_order_id}|{request.razorpay_payment_id}"
+        generated_signature = hmac.new(
+            razorpay_key_secret.encode(),
+            message.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if generated_signature != request.razorpay_signature:
+            raise HTTPException(status_code=400, detail="Invalid payment signature")
+        
+        # Get user's current balance
+        user = await db.users.find_one({"id": request.user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        current_balance = user.get("wallet_balance", 0)
+        new_balance = current_balance + request.amount
+        
+        # Update user's wallet balance
+        await db.users.update_one(
+            {"id": request.user_id},
+            {"$set": {"wallet_balance": new_balance}}
+        )
+        
+        # Update order status
+        await db.payment_orders.update_one(
+            {"order_id": request.razorpay_order_id},
+            {"$set": {
+                "status": "completed",
+                "payment_id": request.razorpay_payment_id,
+                "completed_at": datetime.utcnow()
+            }}
+        )
+        
+        # Create transaction record
+        transaction = TransactionRecord(
+            user_id=request.user_id,
+            type="credit",
+            amount=request.amount,
+            balance_after=new_balance,
+            description=f"Wallet recharge via Razorpay",
+            payment_id=request.razorpay_payment_id,
+            order_id=request.razorpay_order_id,
+        )
+        await db.transactions.insert_one(transaction.dict())
+        
+        return {
+            "success": True,
+            "message": "Payment verified successfully",
+            "new_balance": new_balance,
+            "transaction_id": transaction.id
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error verifying payment: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment verification failed: {str(e)}")
+
+
+# Get User Wallet Balance
+@api_router.get("/wallet/{user_id}")
+async def get_wallet_balance(user_id: str):
+    """Get user's wallet balance"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "user_id": user_id,
+        "balance": user.get("wallet_balance", 0)
+    }
+
+
+# Deduct from Wallet (for bookings)
+@api_router.post("/wallet/deduct")
+async def deduct_from_wallet(request: WalletDeductRequest):
+    """Deduct amount from user's wallet for bookings"""
+    try:
+        # Get user's current balance
+        user = await db.users.find_one({"id": request.user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        current_balance = user.get("wallet_balance", 0)
+        
+        # Check if sufficient balance
+        if current_balance < request.amount:
+            return {
+                "success": False,
+                "message": "Insufficient balance",
+                "current_balance": current_balance,
+                "required_amount": request.amount,
+                "shortfall": request.amount - current_balance
+            }
+        
+        new_balance = current_balance - request.amount
+        
+        # Update user's wallet balance
+        await db.users.update_one(
+            {"id": request.user_id},
+            {"$set": {"wallet_balance": new_balance}}
+        )
+        
+        # Update booking status to 'paid'
+        if request.booking_type == "astrology":
+            await db.bookings.update_one(
+                {"id": request.booking_id},
+                {"$set": {"status": "paid", "paid_at": datetime.utcnow()}}
+            )
+        elif request.booking_type == "yoga_class":
+            await db.yoga_bookings.update_one(
+                {"id": request.booking_id},
+                {"$set": {"status": "paid", "paid_at": datetime.utcnow()}}
+            )
+        elif request.booking_type == "yoga_package":
+            await db.yoga_purchases.update_one(
+                {"id": request.booking_id},
+                {"$set": {"status": "paid", "paid_at": datetime.utcnow()}}
+            )
+        
+        # Create transaction record
+        transaction = TransactionRecord(
+            user_id=request.user_id,
+            type="debit",
+            amount=request.amount,
+            balance_after=new_balance,
+            description=request.description,
+            booking_id=request.booking_id,
+        )
+        await db.transactions.insert_one(transaction.dict())
+        
+        return {
+            "success": True,
+            "message": "Payment successful",
+            "new_balance": new_balance,
+            "transaction_id": transaction.id
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deducting from wallet: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment failed: {str(e)}")
+
+
+# Get User Transactions
+@api_router.get("/wallet/{user_id}/transactions")
+async def get_user_transactions(user_id: str, limit: int = 50):
+    """Get user's transaction history"""
+    transactions = await db.transactions.find(
+        {"user_id": user_id}
+    ).sort("created_at", -1).to_list(limit)
+    
+    return {"transactions": transactions}
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
