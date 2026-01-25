@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,19 +6,28 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useUser } from '../context/UserContext';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://cosmic-healing-1.preview.emergentagent.com/api';
 
 interface PackageConfirmModalProps {
   visible: boolean;
   onClose: () => void;
   packageData: {
     name: string;
+    price: number;
     credits: number;
     validity: string;
+    mode?: string;
   };
   paymentMethod: string;
   onPaymentMethodChange: (method: string) => void;
+  sessionType?: string;
 }
 
 export default function PackageConfirmModal({
@@ -27,7 +36,67 @@ export default function PackageConfirmModal({
   packageData,
   paymentMethod,
   onPaymentMethodChange,
+  sessionType = 'Group class',
 }: PackageConfirmModalProps) {
+  const router = useRouter();
+  const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleConfirmPurchase = async () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to purchase a package', [
+        { text: 'OK', onPress: () => {
+          onClose();
+          router.push('/');
+        }}
+      ]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/yoga/package-purchase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          package_name: packageData.name,
+          price: packageData.price,
+          credits: packageData.credits,
+          validity: packageData.validity,
+          mode: packageData.mode || 'Online',
+          session_type: sessionType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Purchase failed');
+      }
+
+      onClose();
+      
+      // Navigate to wallet with package info
+      router.push({
+        pathname: '/wallet',
+        params: {
+          bookingId: data.id,
+          amount: packageData.price,
+          serviceName: packageData.name,
+          astrologerName: `${packageData.credits} credits`,
+          bookingType: 'yoga_package',
+        }
+      });
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to process purchase');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -50,13 +119,14 @@ export default function PackageConfirmModal({
                 <View style={styles.creditsRow}>
                   <Ionicons name="star" size={16} color="#f6cf92" />
                   <Text style={styles.packText}>Credits: {packageData.credits}</Text>
-                  <TouchableOpacity style={styles.closeIcon}>
-                    <Ionicons name="close" size={16} color="#999" />
-                  </TouchableOpacity>
                 </View>
                 <View style={styles.validityRow}>
                   <Ionicons name="time-outline" size={14} color="#666" />
                   <Text style={styles.validityText}>Validity: {packageData.validity}</Text>
+                </View>
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>Price:</Text>
+                  <Text style={styles.priceValue}>₹{packageData.price.toLocaleString()}</Text>
                 </View>
               </View>
             </View>
@@ -100,10 +170,16 @@ export default function PackageConfirmModal({
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={styles.confirmButton}
+              style={[styles.confirmButton, isLoading && styles.confirmButtonDisabled]}
               activeOpacity={0.8}
+              onPress={handleConfirmPurchase}
+              disabled={isLoading}
             >
-              <Text style={styles.confirmButtonText}>Confirm & Pay</Text>
+              {isLoading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.confirmButtonText}>Confirm & Pay - ₹{packageData.price.toLocaleString()}</Text>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButton} onPress={onClose}>
               <Text style={styles.backButtonText}>Back</Text>
