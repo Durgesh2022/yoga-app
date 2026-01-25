@@ -330,26 +330,6 @@ export default function SignupScreen() {
                 )}
               </TouchableOpacity>
 
-              {/* Divider */}
-              <View style={styles.dividerContainer}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>Or continue with</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              {/* Social Login Buttons */}
-              <View style={styles.socialContainer}>
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-                  <Ionicons name="logo-google" size={20} color="#333" />
-                  <Text style={styles.socialButtonText}>Google</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-                  <Ionicons name="logo-apple" size={20} color="#333" />
-                  <Text style={styles.socialButtonText}>Apple</Text>
-                </TouchableOpacity>
-              </View>
-
               {/* Login Link */}
               <View style={styles.loginLinkContainer}>
                 <Text style={styles.loginLinkText}>Already have an account? </Text>
