@@ -20,7 +20,9 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(
     mongo_url,
     tlsCAFile=certifi.where(),
-    serverSelectionTimeoutMS=5000
+    tls=True,
+    tlsAllowInvalidCertificates=True,
+    serverSelectionTimeoutMS=10000
 )
 db = client[os.environ['DB_NAME']]
 
