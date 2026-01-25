@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { UserProvider } from '../context/UserContext';
 
 export default function RootLayout() {
   return (
-    <>
+    <UserProvider>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
@@ -18,6 +19,6 @@ export default function RootLayout() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="spiritual-preferences" />
       </Stack>
-    </>
+    </UserProvider>
   );
 }
