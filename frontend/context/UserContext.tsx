@@ -18,6 +18,7 @@ interface User {
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
+  updateUser: (user: User) => void;
   isLoading: boolean;
   logout: () => void;
 }
@@ -58,6 +59,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUser = async (updatedUser: User) => {
+    try {
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+      setUserState(updatedUser);
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+  };
+
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('user');
@@ -68,7 +78,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, isLoading, logout }}>
+    <UserContext.Provider value={{ user, setUser, updateUser, isLoading, logout }}>
       {children}
     </UserContext.Provider>
   );
