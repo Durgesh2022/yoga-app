@@ -127,6 +127,122 @@ class Booking(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+# Yoga Class Booking Models
+class YogaClassBookingCreate(BaseModel):
+    user_id: str
+    class_name: str
+    class_time: str
+    class_date: str
+    guru_name: str
+    price: float
+    credits: int
+    level: str
+
+class YogaClassBookingResponse(BaseModel):
+    id: str
+    user_id: str
+    booking_type: str
+    class_name: str
+    class_time: str
+    class_date: str
+    guru_name: str
+    price: float
+    credits: int
+    level: str
+    status: str
+    created_at: datetime
+
+class YogaClassBooking(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    booking_type: str = "yoga_class"
+    class_name: str
+    class_time: str
+    class_date: str
+    guru_name: str
+    price: float
+    credits: int
+    level: str
+    status: str = "pending"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# Yoga Package Purchase Models
+class YogaPackagePurchaseCreate(BaseModel):
+    user_id: str
+    package_name: str
+    price: float
+    credits: int
+    validity: str
+    mode: Optional[str] = "Online"
+    session_type: str  # "Group class" or "Private Session"
+
+class YogaPackagePurchaseResponse(BaseModel):
+    id: str
+    user_id: str
+    purchase_type: str
+    package_name: str
+    price: float
+    credits: int
+    validity: str
+    mode: Optional[str]
+    session_type: str
+    status: str
+    created_at: datetime
+
+class YogaPackagePurchase(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    purchase_type: str = "yoga_package"
+    package_name: str
+    price: float
+    credits: int
+    validity: str
+    mode: Optional[str] = "Online"
+    session_type: str
+    status: str = "pending"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# Yoga Consultation Booking Models
+class YogaConsultationCreate(BaseModel):
+    user_id: str
+    yoga_goal: str
+    intensity_preference: str
+    connection_method: str
+    schedule_timing: str
+    context_notes: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+
+class YogaConsultationResponse(BaseModel):
+    id: str
+    user_id: str
+    booking_type: str
+    yoga_goal: str
+    intensity_preference: str
+    connection_method: str
+    schedule_timing: str
+    context_notes: Optional[str]
+    whatsapp_number: Optional[str]
+    price: float
+    status: str
+    created_at: datetime
+
+class YogaConsultation(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    booking_type: str = "yoga_consultation"
+    yoga_goal: str
+    intensity_preference: str
+    connection_method: str
+    schedule_timing: str
+    context_notes: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    price: float = 0.0  # Free consultation
+    status: str = "pending"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 def hash_password(password: str) -> str:
     """Simple password hashing using SHA256"""
     return hashlib.sha256(password.encode()).hexdigest()
