@@ -483,6 +483,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
+  confirmButtonDisabled: {
+    opacity: 0.7,
+  },
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '700',
