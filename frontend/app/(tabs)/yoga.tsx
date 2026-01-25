@@ -515,6 +515,7 @@ export default function YogaScreen() {
           packageData={selectedPackage}
           paymentMethod={paymentMethod}
           onPaymentMethodChange={setPaymentMethod}
+          sessionType={sessionType}
         />
       )}
     </SafeAreaView>
