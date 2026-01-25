@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import { useUser } from '../context/UserContext';
 
 // Use full URL for Expo Go compatibility
-const API_URL = 'https://healing-hub-24.preview.emergentagent.com/api';
+const API_URL = 'https://cosmic-healing-1.preview.emergentagent.com/api';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'];
 

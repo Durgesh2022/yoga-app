@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../context/UserContext';
 
-const API_URL = 'https://healing-hub-24.preview.emergentagent.com/api';
+const API_URL = 'https://cosmic-healing-1.preview.emergentagent.com/api';
 
 export default function AstrologerDetailScreen() {
   const router = useRouter();
