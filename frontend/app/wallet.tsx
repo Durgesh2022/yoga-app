@@ -491,6 +491,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f6cf92',
   },
+  freeConsultationCard: {
+    backgroundColor: '#E8F5E8',
+    borderColor: '#4ADE80',
+  },
   bookingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -525,6 +529,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   payNowText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  viewYogaButton: {
+    backgroundColor: '#4ADE80',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  viewYogaText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#FFF',
