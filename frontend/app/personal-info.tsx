@@ -6,21 +6,32 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useUser } from '../context/UserContext';
 
 export default function PersonalInfoScreen() {
   const router = useRouter();
-  const [gender, setGender] = useState('Female');
-  const [phoneNumber] = useState('+91 · 98765 43210');
-  const [email] = useState('ananya.celestials@example.com');
-  const [dob] = useState('12 Aug 1994');
-  const [location] = useState('Bengaluru, India');
+  const { user, setUser } = useUser();
+  
+  const [gender, setGender] = useState(user?.gender || '');
+  const [phoneNumber] = useState(user?.phone || '');
+  const [email] = useState(user?.email || '');
+  const [dob] = useState(user?.date_of_birth || '');
+  const [timeOfBirth] = useState(user?.time_of_birth || '');
+  const [location] = useState(user?.location || '');
 
   const handleSaveChanges = () => {
-    console.log('Changes saved');
+    if (user) {
+      setUser({
+        ...user,
+        gender: gender,
+      });
+    }
+    Alert.alert('Success', 'Changes saved successfully!');
     router.back();
   };
 
@@ -45,7 +56,7 @@ export default function PersonalInfoScreen() {
               <View style={styles.infoRow}>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Phone number</Text>
-                  <Text style={styles.infoValue}>{phoneNumber}</Text>
+                  <Text style={styles.infoValue}>{phoneNumber || 'Not set'}</Text>
                 </View>
                 <TouchableOpacity>
                   <Ionicons name="create-outline" size={20} color="#999" />
@@ -57,7 +68,7 @@ export default function PersonalInfoScreen() {
               <View style={styles.infoRow}>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Email ID</Text>
-                  <Text style={styles.infoValue}>{email}</Text>
+                  <Text style={styles.infoValue}>{email || 'Not set'}</Text>
                 </View>
                 <TouchableOpacity>
                   <Ionicons name="create-outline" size={20} color="#999" />
@@ -116,7 +127,7 @@ export default function PersonalInfoScreen() {
               <View style={styles.infoRow}>
                 <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Date of birth</Text>
-                  <Text style={styles.infoValue}>{dob}</Text>
+                  <Text style={styles.infoValue}>{dob || 'Not set'}</Text>
                   <Text style={styles.infoSubtext}>Used for astrology & rituals</Text>
                 </View>
                 <TouchableOpacity>
@@ -128,8 +139,21 @@ export default function PersonalInfoScreen() {
             <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                 <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Time of birth</Text>
+                  <Text style={styles.infoValue}>{timeOfBirth || 'Not set'}</Text>
+                  <Text style={styles.infoSubtext}>For accurate birth chart calculations</Text>
+                </View>
+                <TouchableOpacity>
+                  <Ionicons name="time-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoContent}>
                   <Text style={styles.infoLabel}>Location</Text>
-                  <Text style={styles.infoValue}>{location}</Text>
+                  <Text style={styles.infoValue}>{location || 'Not set'}</Text>
                   <Text style={styles.infoSubtext}>For accurate charts & puja timings</Text>
                 </View>
                 <TouchableOpacity>
@@ -240,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   genderButtonActive: {
-    backgroundColor: '#f6cf92',
+    backgroundColor: '#D4A574',
   },
   genderText: {
     fontSize: 14,
@@ -253,7 +277,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginHorizontal: 16,
     marginTop: 32,
-    backgroundColor: '#f6cf92',
+    backgroundColor: '#D4A574',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
