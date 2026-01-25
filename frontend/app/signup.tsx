@@ -100,9 +100,9 @@ export default function SignupScreen() {
         throw new Error(data.detail || 'Signup failed');
       }
 
-      Alert.alert('Success', 'Account created successfully!', [
-        { text: 'OK', onPress: () => router.replace('/') }
-      ]);
+      // Save user data to context and navigate to app
+      setUser(data);
+      router.replace('/(tabs)/astrology');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to create account');
     } finally {
