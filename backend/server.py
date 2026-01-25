@@ -446,6 +446,117 @@ async def get_booking(booking_id: str):
     )
 
 
+# Yoga Class Booking Routes
+@api_router.post("/yoga/class-booking", response_model=YogaClassBookingResponse)
+async def create_yoga_class_booking(booking_data: YogaClassBookingCreate):
+    """Create a new yoga class booking"""
+    booking = YogaClassBooking(
+        user_id=booking_data.user_id,
+        class_name=booking_data.class_name,
+        class_time=booking_data.class_time,
+        class_date=booking_data.class_date,
+        guru_name=booking_data.guru_name,
+        price=booking_data.price,
+        credits=booking_data.credits,
+        level=booking_data.level,
+    )
+    
+    await db.yoga_bookings.insert_one(booking.dict())
+    
+    return YogaClassBookingResponse(
+        id=booking.id,
+        user_id=booking.user_id,
+        booking_type=booking.booking_type,
+        class_name=booking.class_name,
+        class_time=booking.class_time,
+        class_date=booking.class_date,
+        guru_name=booking.guru_name,
+        price=booking.price,
+        credits=booking.credits,
+        level=booking.level,
+        status=booking.status,
+        created_at=booking.created_at,
+    )
+
+
+# Yoga Package Purchase Routes
+@api_router.post("/yoga/package-purchase", response_model=YogaPackagePurchaseResponse)
+async def create_yoga_package_purchase(purchase_data: YogaPackagePurchaseCreate):
+    """Create a new yoga package purchase"""
+    purchase = YogaPackagePurchase(
+        user_id=purchase_data.user_id,
+        package_name=purchase_data.package_name,
+        price=purchase_data.price,
+        credits=purchase_data.credits,
+        validity=purchase_data.validity,
+        mode=purchase_data.mode,
+        session_type=purchase_data.session_type,
+    )
+    
+    await db.yoga_purchases.insert_one(purchase.dict())
+    
+    return YogaPackagePurchaseResponse(
+        id=purchase.id,
+        user_id=purchase.user_id,
+        purchase_type=purchase.purchase_type,
+        package_name=purchase.package_name,
+        price=purchase.price,
+        credits=purchase.credits,
+        validity=purchase.validity,
+        mode=purchase.mode,
+        session_type=purchase.session_type,
+        status=purchase.status,
+        created_at=purchase.created_at,
+    )
+
+
+# Yoga Consultation Booking Routes
+@api_router.post("/yoga/consultation", response_model=YogaConsultationResponse)
+async def create_yoga_consultation(consultation_data: YogaConsultationCreate):
+    """Create a new yoga consultation booking"""
+    consultation = YogaConsultation(
+        user_id=consultation_data.user_id,
+        yoga_goal=consultation_data.yoga_goal,
+        intensity_preference=consultation_data.intensity_preference,
+        connection_method=consultation_data.connection_method,
+        schedule_timing=consultation_data.schedule_timing,
+        context_notes=consultation_data.context_notes,
+        whatsapp_number=consultation_data.whatsapp_number,
+    )
+    
+    await db.yoga_consultations.insert_one(consultation.dict())
+    
+    return YogaConsultationResponse(
+        id=consultation.id,
+        user_id=consultation.user_id,
+        booking_type=consultation.booking_type,
+        yoga_goal=consultation.yoga_goal,
+        intensity_preference=consultation.intensity_preference,
+        connection_method=consultation.connection_method,
+        schedule_timing=consultation.schedule_timing,
+        context_notes=consultation.context_notes,
+        whatsapp_number=consultation.whatsapp_number,
+        price=consultation.price,
+        status=consultation.status,
+        created_at=consultation.created_at,
+    )
+
+
+# Get all yoga bookings for a user
+@api_router.get("/yoga/user/{user_id}/bookings")
+async def get_user_yoga_bookings(user_id: str):
+    """Get all yoga-related bookings for a user"""
+    class_bookings = await db.yoga_bookings.find({"user_id": user_id}).to_list(100)
+    package_purchases = await db.yoga_purchases.find({"user_id": user_id}).to_list(100)
+    consultations = await db.yoga_consultations.find({"user_id": user_id}).to_list(100)
+    
+    return {
+        "class_bookings": class_bookings,
+        "package_purchases": package_purchases,
+        "consultations": consultations,
+    }
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
