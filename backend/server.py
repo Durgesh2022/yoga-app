@@ -10,6 +10,8 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 import hashlib
+import razorpay
+import hmac
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -18,6 +20,11 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# Razorpay client
+razorpay_key_id = os.environ.get('RAZORPAY_KEY_ID', '')
+razorpay_key_secret = os.environ.get('RAZORPAY_KEY_SECRET', '')
+razorpay_client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
 
 # Create the main app without a prefix
 app = FastAPI()
