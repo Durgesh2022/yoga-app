@@ -10,26 +10,13 @@ from typing import List, Optional
 import uuid
 from datetime import datetime
 import hashlib
-import ssl
-import certifi
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection with SSL settings for Atlas
+# MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-
-# Create custom SSL context
-ssl_context = ssl.create_default_context(cafile=certifi.where())
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
-
-client = AsyncIOMotorClient(
-    mongo_url,
-    tlsCAFile=certifi.where(),
-    serverSelectionTimeoutMS=15000,
-    connectTimeoutMS=10000
-)
+client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
