@@ -244,6 +244,92 @@ async def get_user(user_id: str):
     )
 
 
+# Booking Routes
+@api_router.post("/bookings", response_model=BookingResponse)
+async def create_booking(booking_data: BookingCreate):
+    """Create a new astrology session booking"""
+    booking = Booking(
+        user_id=booking_data.user_id,
+        astrologer_id=booking_data.astrologer_id,
+        astrologer_name=booking_data.astrologer_name,
+        astrologer_expertise=booking_data.astrologer_expertise,
+        astrologer_experience=booking_data.astrologer_experience,
+        astrologer_languages=booking_data.astrologer_languages,
+        service_name=booking_data.service_name,
+        service_duration=booking_data.service_duration,
+        service_price=booking_data.service_price,
+        booking_date=booking_data.booking_date,
+        booking_time=booking_data.booking_time,
+    )
+    
+    await db.bookings.insert_one(booking.dict())
+    
+    return BookingResponse(
+        id=booking.id,
+        user_id=booking.user_id,
+        astrologer_id=booking.astrologer_id,
+        astrologer_name=booking.astrologer_name,
+        astrologer_expertise=booking.astrologer_expertise,
+        astrologer_experience=booking.astrologer_experience,
+        astrologer_languages=booking.astrologer_languages,
+        service_name=booking.service_name,
+        service_duration=booking.service_duration,
+        service_price=booking.service_price,
+        booking_date=booking.booking_date,
+        booking_time=booking.booking_time,
+        status=booking.status,
+        created_at=booking.created_at,
+    )
+
+
+@api_router.get("/bookings/user/{user_id}", response_model=List[BookingResponse])
+async def get_user_bookings(user_id: str):
+    """Get all bookings for a user"""
+    bookings = await db.bookings.find({"user_id": user_id}).to_list(100)
+    return [BookingResponse(
+        id=b["id"],
+        user_id=b["user_id"],
+        astrologer_id=b["astrologer_id"],
+        astrologer_name=b["astrologer_name"],
+        astrologer_expertise=b["astrologer_expertise"],
+        astrologer_experience=b["astrologer_experience"],
+        astrologer_languages=b["astrologer_languages"],
+        service_name=b["service_name"],
+        service_duration=b["service_duration"],
+        service_price=b["service_price"],
+        booking_date=b["booking_date"],
+        booking_time=b["booking_time"],
+        status=b["status"],
+        created_at=b["created_at"],
+    ) for b in bookings]
+
+
+@api_router.get("/bookings/{booking_id}", response_model=BookingResponse)
+async def get_booking(booking_id: str):
+    """Get booking by ID"""
+    booking = await db.bookings.find_one({"id": booking_id})
+    
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    return BookingResponse(
+        id=booking["id"],
+        user_id=booking["user_id"],
+        astrologer_id=booking["astrologer_id"],
+        astrologer_name=booking["astrologer_name"],
+        astrologer_expertise=booking["astrologer_expertise"],
+        astrologer_experience=booking["astrologer_experience"],
+        astrologer_languages=booking["astrologer_languages"],
+        service_name=booking["service_name"],
+        service_duration=booking["service_duration"],
+        service_price=booking["service_price"],
+        booking_date=booking["booking_date"],
+        booking_time=booking["booking_time"],
+        status=booking["status"],
+        created_at=booking["created_at"],
+    )
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
