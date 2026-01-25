@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,14 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useUser } from '../context/UserContext';
+
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://cosmic-healing-1.preview.emergentagent.com/api';
 
 interface BookingModalProps {
   visible: boolean;
@@ -19,6 +25,7 @@ interface BookingModalProps {
     guru: string;
     price: number;
     credits: number;
+    level?: string;
   };
   userCredits: number;
 }
@@ -29,10 +36,64 @@ export default function BookingModal({
   classData,
   userCredits,
 }: BookingModalProps) {
-  const handleProceed = () => {
-    // TODO: Implement booking logic
-    console.log('Proceeding to checkout');
-    onClose();
+  const router = useRouter();
+  const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleProceed = async () => {
+    if (!user) {
+      Alert.alert('Login Required', 'Please login to book a class', [
+        { text: 'OK', onPress: () => {
+          onClose();
+          router.push('/');
+        }}
+      ]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/yoga/class-booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          class_name: classData.name,
+          class_time: classData.time,
+          class_date: classData.date,
+          guru_name: classData.guru,
+          price: classData.price,
+          credits: classData.credits,
+          level: classData.level || 'Beginner',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Booking failed');
+      }
+
+      onClose();
+      
+      // Navigate to wallet with booking info
+      router.push({
+        pathname: '/wallet',
+        params: {
+          bookingId: data.id,
+          amount: classData.price,
+          serviceName: classData.name,
+          astrologerName: classData.guru,
+          bookingType: 'yoga_class',
+        }
+      });
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to create booking');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,7 +125,7 @@ export default function BookingModal({
                 {classData.date} | {classData.time} | {classData.guru}
               </Text>
               <View style={styles.creditBadge}>
-                <Text style={styles.creditText}>1 Yoga Credit</Text>
+                <Text style={styles.creditText}>{classData.credits} Yoga Credit</Text>
               </View>
             </View>
 
@@ -88,7 +149,10 @@ export default function BookingModal({
                 <Ionicons name="star" size={16} color="#f6cf92" />
                 <Text style={styles.creditsText}>Credits: {userCredits}</Text>
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => {
+                onClose();
+                router.push('/wallet');
+              }}>
                 <Text style={styles.addCreditsText}>Add credits</Text>
               </TouchableOpacity>
             </View>
@@ -97,10 +161,15 @@ export default function BookingModal({
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
             <TouchableOpacity
-              style={styles.proceedButton}
+              style={[styles.proceedButton, isLoading && styles.proceedButtonDisabled]}
               onPress={handleProceed}
+              disabled={isLoading}
             >
-              <Text style={styles.proceedButtonText}>Proceed to Checkout</Text>
+              {isLoading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.proceedButtonText}>Proceed to Checkout - ₹{classData.price}</Text>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.backButton} onPress={onClose}>
               <Text style={styles.backButtonText}>Back</Text>
