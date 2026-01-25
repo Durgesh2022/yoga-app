@@ -619,7 +619,7 @@ async def create_razorpay_order(request: CreateOrderRequest):
         order_data = {
             "amount": amount_in_paise,
             "currency": request.currency,
-            "receipt": f"wallet_{request.user_id}_{uuid.uuid4().hex[:8]}",
+            "receipt": f"rcpt_{uuid.uuid4().hex[:12]}",  # Max 40 chars for Razorpay
             "notes": {
                 "user_id": request.user_id,
                 "purpose": request.purpose,
