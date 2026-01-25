@@ -443,4 +443,51 @@ const styles = StyleSheet.create({
   bottomSpace: {
     height: 20,
   },
+  bookingCard: {
+    backgroundColor: '#FFF9F0',
+    margin: 16,
+    marginBottom: 0,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#f6cf92',
+  },
+  bookingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  bookingTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+  },
+  bookingDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bookingService: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
+  },
+  bookingAmount: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#f6cf92',
+  },
+  payNowButton: {
+    backgroundColor: '#f6cf92',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  payNowText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
 });
