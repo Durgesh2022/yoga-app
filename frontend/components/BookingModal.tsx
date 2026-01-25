@@ -310,6 +310,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
   },
+  proceedButtonDisabled: {
+    opacity: 0.7,
+  },
   proceedButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
