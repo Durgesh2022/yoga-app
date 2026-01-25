@@ -446,7 +446,13 @@ export default function YogaScreen() {
           </View>
           <TouchableOpacity 
             style={styles.connectButton}
-            onPress={() => router.push('/talk-to-expert')}
+            onPress={() => router.push({
+              pathname: '/talk-to-expert',
+              params: {
+                yogaGoal: selectedGoal,
+                intensityPreference: selectedIntensity,
+              }
+            })}
           >
             <Text style={styles.connectButtonText}>Connect</Text>
           </TouchableOpacity>
