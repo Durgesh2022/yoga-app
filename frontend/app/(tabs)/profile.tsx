@@ -5,11 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useUser } from '../../context/UserContext';
 
 const MENU_SECTIONS = [
   {
@@ -44,8 +45,10 @@ const MENU_SECTIONS = [
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { user, logout } = useUser();
 
   const handleLogout = () => {
+    logout();
     router.replace('/');
   };
 
@@ -55,65 +58,93 @@ export default function ProfileScreen() {
     }
   };
 
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!user?.full_name) return 'U';
+    const names = user.full_name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return names[0][0].toUpperCase();
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
-          <View style={styles.walletContainer}>
-            <Ionicons name="wallet" size={16} color="#f6cf92" />
-            <Text style={styles.walletText}>₹2,450</Text>
-          </View>
         </View>
 
-        {/* User Info Card */}
-        <View style={styles.userCard}>
-          <LinearGradient
-            colors={['#FFF9F0', '#FFE8CC']}
-            style={styles.avatar}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Ionicons name="person" size={40} color="#f6cf92" />
-          </LinearGradient>
-          <View style={styles.userDetails}>
-            <Text style={styles.userName}>Ananya Sharma</Text>
-            <Text style={styles.userTagline}>Aligning your stars, breath and energy</Text>
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{getInitials()}</Text>
+            </View>
+            <TouchableOpacity style={styles.editAvatarButton}>
+              <Ionicons name="camera" size={14} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{user?.full_name || 'Guest User'}</Text>
+            <Text style={styles.profileEmail}>{user?.email || 'No email'}</Text>
+            {user?.phone && (
+              <Text style={styles.profilePhone}>{user.phone}</Text>
+            )}
+          </View>
+          {user?.is_verified && (
             <View style={styles.verifiedBadge}>
-              <Ionicons name="checkmark-circle" size={14} color="#4ADE80" />
-              <Text style={styles.verifiedText}>Verified Member</Text>
+              <Ionicons name="checkmark-circle" size={16} color="#4ADE80" />
+              <Text style={styles.verifiedText}>Verified</Text>
             </View>
-          </View>
-          <TouchableOpacity style={styles.editButton}>
-            <Ionicons name="create-outline" size={20} color="#f6cf92" />
-          </TouchableOpacity>
+          )}
         </View>
 
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="calendar" size={20} color="#4ADE80" />
+        {/* User Details Card */}
+        {user && (
+          <View style={styles.detailsCard}>
+            <Text style={styles.detailsTitle}>Your Details</Text>
+            
+            {user.gender && (
+              <View style={styles.detailRow}>
+                <Ionicons name="person-outline" size={18} color="#8B8680" />
+                <Text style={styles.detailLabel}>Gender</Text>
+                <Text style={styles.detailValue}>{user.gender}</Text>
+              </View>
+            )}
+            
+            {user.date_of_birth && (
+              <View style={styles.detailRow}>
+                <Ionicons name="calendar-outline" size={18} color="#8B8680" />
+                <Text style={styles.detailLabel}>Date of Birth</Text>
+                <Text style={styles.detailValue}>{user.date_of_birth}</Text>
+              </View>
+            )}
+            
+            {user.time_of_birth && (
+              <View style={styles.detailRow}>
+                <Ionicons name="time-outline" size={18} color="#8B8680" />
+                <Text style={styles.detailLabel}>Time of Birth</Text>
+                <Text style={styles.detailValue}>{user.time_of_birth}</Text>
+              </View>
+            )}
+            
+            {user.location && (
+              <View style={styles.detailRow}>
+                <Ionicons name="location-outline" size={18} color="#8B8680" />
+                <Text style={styles.detailLabel}>Location</Text>
+                <Text style={styles.detailValue}>{user.location}</Text>
+              </View>
+            )}
+
+            <View style={styles.detailRow}>
+              <Ionicons name="wallet-outline" size={18} color="#8B8680" />
+              <Text style={styles.detailLabel}>Wallet Balance</Text>
+              <Text style={[styles.detailValue, styles.walletBalance]}>₹{user.wallet_balance || 0}</Text>
             </View>
-            <Text style={styles.statValue}>12</Text>
-            <Text style={styles.statLabel}>Sessions</Text>
           </View>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="star" size={20} color="#FBBF24" />
-            </View>
-            <Text style={styles.statValue}>48</Text>
-            <Text style={styles.statLabel}>Credits</Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="time" size={20} color="#60A5FA" />
-            </View>
-            <Text style={styles.statValue}>24h</Text>
-            <Text style={styles.statLabel}>Total Time</Text>
-          </View>
-        </View>
+        )}
 
         {/* Menu Sections */}
         {MENU_SECTIONS.map((section, index) => (
@@ -139,14 +170,13 @@ export default function ProfileScreen() {
         ))}
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
-          <Ionicons name="log-out-outline" size={20} color="#FF4444" />
-          <Text style={styles.logoutButtonText}>Log out</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Version 1.0.0</Text>
-        </View>
+        {/* App Version */}
+        <Text style={styles.versionText}>Celestials Healing v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -161,12 +191,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 20,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
   },
   title: {
@@ -174,164 +201,175 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333',
   },
-  walletContainer: {
+  profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF9F0',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
-    gap: 6,
-  },
-  walletText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#f6cf92',
-  },
-  userCard: {
-    flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 20,
-    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 20,
     borderRadius: 16,
-    alignItems: 'center',
+  },
+  avatarContainer: {
+    position: 'relative',
   },
   avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#D4A574',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
   },
-  userDetails: {
+  avatarText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#333',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  profileInfo: {
     flex: 1,
+    marginLeft: 16,
   },
-  userName: {
-    fontSize: 18,
+  profileName: {
+    fontSize: 20,
     fontWeight: '700',
     color: '#333',
     marginBottom: 4,
   },
-  userTagline: {
-    fontSize: 12,
+  profileEmail: {
+    fontSize: 14,
     color: '#666',
-    lineHeight: 16,
-    marginBottom: 6,
+    marginBottom: 2,
+  },
+  profilePhone: {
+    fontSize: 13,
+    color: '#999',
   },
   verifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     gap: 4,
   },
   verifiedText: {
-    fontSize: 11,
-    color: '#4ADE80',
+    fontSize: 12,
     fontWeight: '600',
+    color: '#4ADE80',
   },
-  editButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFF9F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginTop: 16,
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
+  detailsCard: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 20,
+    borderRadius: 16,
   },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 20,
+  detailsTitle: {
+    fontSize: 16,
     fontWeight: '700',
     color: '#333',
-    marginBottom: 2,
+    marginBottom: 16,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#999',
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  detailLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: '#8B8680',
+    marginLeft: 12,
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+  },
+  walletBalance: {
+    color: '#4ADE80',
+    fontWeight: '700',
   },
   menuSection: {
-    paddingHorizontal: 20,
-    marginTop: 24,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#999',
-    marginBottom: 12,
-    textTransform: 'uppercase',
+    marginTop: 12,
+    marginBottom: 8,
+    paddingHorizontal: 4,
     letterSpacing: 0.5,
   },
   menuItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
   },
   iconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 14,
   },
   menuItemText: {
     fontSize: 15,
-    color: '#333',
     fontWeight: '500',
+    color: '#333',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 24,
-    marginBottom: 16,
-    backgroundColor: '#FFF1F1',
+    padding: 16,
+    backgroundColor: '#FEF2F2',
     borderRadius: 12,
-    paddingVertical: 16,
     gap: 8,
   },
-  logoutButtonText: {
-    color: '#FF4444',
+  logoutText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: '#EF4444',
   },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  footerText: {
+  versionText: {
+    textAlign: 'center',
     fontSize: 12,
     color: '#CCC',
+    marginTop: 20,
+    marginBottom: 30,
   },
 });
