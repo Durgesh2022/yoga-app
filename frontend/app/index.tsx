@@ -19,7 +19,7 @@ import { useRouter } from 'expo-router';
 import { useUser } from '../context/UserContext';
 
 // Use full URL for Expo Go compatibility
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api` : 'https://cosmic-healing-1.preview.emergentagent.com/api';
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api` : 'https://yoga-app-self.vercel.app/api';
 
 export default function LoginScreen() {
   const router = useRouter();
