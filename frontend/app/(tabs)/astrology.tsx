@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,74 +14,29 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../context/UserContext';
 
-const ASTROLOGERS = [
-  { 
-    id: 1, 
-    name: 'Astro Meera', 
-    rating: 4.9, 
-    reviews: 1200, 
-    expertise: 'Tarot & Palmistry', 
-    available: true,
-    price: 400,
-    languages: ['Hindi', 'English'],
-    experience: '10+ years'
-  },
-  { 
-    id: 2, 
-    name: 'Pandit Arjun', 
-    rating: 4.8, 
-    reviews: 980, 
-    expertise: 'Vedic Astrology', 
-    available: true,
-    price: 600,
-    languages: ['Hindi', 'Sanskrit'],
-    experience: '15+ years'
-  },
-  { 
-    id: 3, 
-    name: 'Astro Kavya', 
-    rating: 4.9, 
-    reviews: 750, 
-    expertise: 'Numerology', 
-    available: false,
-    price: 300,
-    languages: ['English', 'Tamil'],
-    experience: '8+ years'
-  },
-  { 
-    id: 4, 
-    name: 'Guru Dev', 
-    rating: 4.7, 
-    reviews: 1600, 
-    expertise: 'Horoscope Reading', 
-    available: true,
-    price: 500,
-    languages: ['Hindi', 'English', 'Punjabi'],
-    experience: '20+ years'
-  },
-  { 
-    id: 5, 
-    name: 'Jyotishi Priya', 
-    rating: 4.6, 
-    reviews: 450, 
-    expertise: 'Tarot & Palmistry', 
-    available: true,
-    price: 350,
-    languages: ['English'],
-    experience: '5+ years'
-  },
-  { 
-    id: 6, 
-    name: 'Acharya Raman', 
-    rating: 4.9, 
-    reviews: 2100, 
-    expertise: 'Vedic Astrology', 
-    available: true,
-    price: 800,
-    languages: ['Hindi', 'English', 'Sanskrit'],
-    experience: '25+ years'
-  },
-];
+// API Configuration - Update this with your actual backend URL
+const API_URL = 'http://192.168.1.2:3000/api';
+
+interface Service {
+  name: string;
+  duration: string;
+  price: number;
+  description: string;
+  tag: 'intro' | 'popular' | '';
+}
+
+interface Astrologer {
+  _id: string;
+  name: string;
+  expertise: string;
+  experience: string;
+  languages: string[];
+  price: number;
+  rating: number;
+  reviews: number;
+  available: boolean;
+  services: Service[];
+}
 
 const FILTER_OPTIONS = {
   Pricing: ['Low to High', 'High to Low'],
@@ -99,6 +56,37 @@ export default function AstrologyScreen() {
     Expertise: '',
   });
   const [showFilterOptions, setShowFilterOptions] = useState(false);
+  const [astrologers, setAstrologers] = useState<Astrologer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch astrologers from MongoDB
+  useEffect(() => {
+    fetchAstrologers();
+  }, []);
+
+  const fetchAstrologers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch(`${API_URL}/astrologers`);
+      const result = await response.json();
+
+      if (result.success) {
+        setAstrologers(result.data);
+      } else {
+        setError(result.error || 'Failed to fetch astrologers');
+        Alert.alert('Error', result.error || 'Failed to fetch astrologers');
+      }
+    } catch (err: any) {
+      console.error('Error fetching astrologers:', err);
+      setError('Failed to connect to the server');
+      Alert.alert('Error', 'Failed to connect to the server. Please check if the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterSelect = (filter: string) => {
     setSelectedFilter(filter);
@@ -114,7 +102,7 @@ export default function AstrologyScreen() {
   };
 
   const filteredAstrologers = useMemo(() => {
-    let result = [...ASTROLOGERS];
+    let result = [...astrologers];
 
     // Filter by availability
     if (activeFilters.Availability === 'Available Now') {
@@ -139,13 +127,13 @@ export default function AstrologyScreen() {
     }
 
     return result;
-  }, [activeFilters]);
+  }, [astrologers, activeFilters]);
 
-  const handleAstrologerPress = (astrologer: typeof ASTROLOGERS[0]) => {
+  const handleAstrologerPress = (astrologer: Astrologer) => {
     router.push({
       pathname: '/astrologer-detail',
       params: {
-        id: astrologer.id,
+        id: astrologer._id,
         name: astrologer.name,
         expertise: astrologer.expertise,
         experience: astrologer.experience,
@@ -153,6 +141,7 @@ export default function AstrologyScreen() {
         price: astrologer.price,
         rating: astrologer.rating,
         reviews: astrologer.reviews,
+        services: JSON.stringify(astrologer.services),
       }
     });
   };
@@ -275,44 +264,79 @@ export default function AstrologyScreen() {
         <View style={styles.astrologersSection}>
           <View style={styles.astrologersTitleRow}>
             <Text style={styles.astrologersTitle}>Top Astrologers</Text>
-            <Text style={styles.astrologersCount}>{filteredAstrologers.length} found</Text>
+            {!loading && (
+              <Text style={styles.astrologersCount}>{filteredAstrologers.length} found</Text>
+            )}
           </View>
-          <View style={styles.astrologersGrid}>
-            {filteredAstrologers.map((astrologer) => (
-              <TouchableOpacity 
-                key={astrologer.id} 
-                style={styles.astrologerCard} 
-                activeOpacity={0.8}
-                onPress={() => handleAstrologerPress(astrologer)}
-              >
-                <View style={styles.astrologerHeader}>
-                  <View style={styles.astrologerAvatar}>
-                    <Ionicons name="person" size={32} color="#f6cf92" />
-                  </View>
-                  {astrologer.available && (
-                    <View style={styles.onlineBadge}>
-                      <View style={styles.onlineDot} />
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.astrologerName}>{astrologer.name}</Text>
-                <View style={styles.ratingContainer}>
-                  <Ionicons name="star" size={14} color="#f6cf92" />
-                  <Text style={styles.ratingText}>{astrologer.rating}</Text>
-                  <Text style={styles.reviewsText}>({astrologer.reviews})</Text>
-                </View>
-                <Text style={styles.serviceText}>{astrologer.expertise}</Text>
-                <Text style={styles.priceText}>From ₹{astrologer.price}/session</Text>
+
+          {/* Loading State */}
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#f6cf92" />
+              <Text style={styles.loadingText}>Loading astrologers...</Text>
+            </View>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={fetchAstrologers}>
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && filteredAstrologers.length === 0 && (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="person-outline" size={48} color="#999" />
+              <Text style={styles.emptyText}>No astrologers found</Text>
+              <Text style={styles.emptySubText}>Try adjusting your filters</Text>
+            </View>
+          )}
+
+          {/* Astrologers Grid */}
+          {!loading && !error && filteredAstrologers.length > 0 && (
+            <View style={styles.astrologersGrid}>
+              {filteredAstrologers.map((astrologer) => (
                 <TouchableOpacity 
-                  style={styles.chatButton}
+                  key={astrologer._id} 
+                  style={styles.astrologerCard} 
+                  activeOpacity={0.8}
                   onPress={() => handleAstrologerPress(astrologer)}
                 >
-                  <Ionicons name="chatbubble" size={14} color="#FFFFFF" />
-                  <Text style={styles.chatButtonText}>Chat Now</Text>
+                  <View style={styles.astrologerHeader}>
+                    <View style={styles.astrologerAvatar}>
+                      <Ionicons name="person" size={32} color="#f6cf92" />
+                    </View>
+                    {astrologer.available && (
+                      <View style={styles.onlineBadge}>
+                        <View style={styles.onlineDot} />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.astrologerName}>{astrologer.name}</Text>
+                  <View style={styles.ratingContainer}>
+                    <Ionicons name="star" size={14} color="#f6cf92" />
+                    <Text style={styles.ratingText}>{astrologer.rating}</Text>
+                    <Text style={styles.reviewsText}>({astrologer.reviews})</Text>
+                  </View>
+                  <Text style={styles.serviceText}>{astrologer.expertise}</Text>
+                  <Text style={styles.languageText}>{astrologer.languages.join(', ')}</Text>
+                  <Text style={styles.priceText}>From ₹{astrologer.price}/session</Text>
+                  <TouchableOpacity 
+                    style={styles.chatButton}
+                    onPress={() => handleAstrologerPress(astrologer)}
+                  >
+                    <Ionicons name="chatbubble" size={14} color="#FFFFFF" />
+                    <Text style={styles.chatButtonText}>Chat Now</Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -528,6 +552,56 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#999',
   },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#EF4444',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    backgroundColor: '#f6cf92',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  emptySubText: {
+    marginTop: 4,
+    fontSize: 14,
+    color: '#999',
+  },
   astrologersGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -597,6 +671,12 @@ const styles = StyleSheet.create({
   serviceText: {
     fontSize: 12,
     color: '#666',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  languageText: {
+    fontSize: 11,
+    color: '#999',
     textAlign: 'center',
     marginBottom: 4,
   },
