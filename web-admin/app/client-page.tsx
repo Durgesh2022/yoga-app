@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import AstrologerDashboard from './Astrologerdashboard/page';
-import Login from './Login/page';
-import SignUp from './SignUp/page';
+import AstrologerDashboard from './astrologerdashboard/page';
 import Dashboard from './dashboard';
+import Login from './login/page';
+import SignUp from './signup/page';
 
 interface User {
   id: string;
