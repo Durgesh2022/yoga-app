@@ -1,9 +1,10 @@
-import Dashboard from "./dashboard";
+import ClientPage from  './client-page'
 
 export default function Home() {
   return (
     <div>
-      <Dashboard />
+     <ClientPage />
+      
     </div>
   );
 }

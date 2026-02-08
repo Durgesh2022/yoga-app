@@ -13,6 +13,20 @@ import hashlib
 import razorpay
 import hmac
 
+
+def serialize_doc(doc):
+    """Convert MongoDB document to JSON-serializable dict"""
+    if doc is None:
+        return None
+    if isinstance(doc, list):
+        return [serialize_doc(item) for item in doc]
+    if isinstance(doc, dict):
+        doc = dict(doc)  # Make a copy
+        if '_id' in doc:
+            doc['_id'] = str(doc['_id'])  # Convert ObjectId to string
+        return doc
+    return doc
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -608,6 +622,14 @@ class TransactionRecord(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
 # Create Razorpay Order
 @api_router.post("/payment/create-order", response_model=CreateOrderResponse)
 async def create_razorpay_order(request: CreateOrderRequest):
@@ -867,6 +889,581 @@ async def get_user_transactions(user_id: str, limit: int = 50):
     return {"transactions": transactions}
 
 
+
+# ============= ADMIN DASHBOARD ENDPOINTS =============
+
+from typing import Dict, Any
+from datetime import datetime, timedelta
+
+# Admin Stats Dashboard
+@api_router.get("/admin/stats")
+async def get_admin_stats():
+    """Get dashboard statistics for admin"""
+    try:
+        # Count users
+        total_users = await db.users.count_documents({})
+        new_users_this_month = await db.users.count_documents({
+            "created_at": {"$gte": datetime.utcnow().replace(day=1)}
+        })
+        
+        # Count bookings
+        total_bookings = await db.bookings.count_documents({})
+        pending_bookings = await db.bookings.count_documents({"status": "pending"})
+        paid_bookings = await db.bookings.count_documents({"status": "paid"})
+        
+        # Count yoga bookings
+        total_yoga_bookings = await db.yoga_bookings.count_documents({})
+        total_yoga_packages = await db.yoga_purchases.count_documents({})
+        total_consultations = await db.yoga_consultations.count_documents({})
+        
+        # Calculate revenue
+        revenue_pipeline = [
+            {
+                "$group": {
+                    "_id": None,
+                    "total_revenue": {"$sum": "$amount"}
+                }
+            }
+        ]
+        credit_transactions = await db.transactions.aggregate([
+            {"$match": {"type": "credit"}},
+            *revenue_pipeline
+        ]).to_list(1)
+        
+        total_revenue = credit_transactions[0]["total_revenue"] if credit_transactions else 0
+        
+        # Revenue this month
+        month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        monthly_revenue = await db.transactions.aggregate([
+            {"$match": {"type": "credit", "created_at": {"$gte": month_start}}},
+            *revenue_pipeline
+        ]).to_list(1)
+        
+        revenue_this_month = monthly_revenue[0]["total_revenue"] if monthly_revenue else 0
+        
+        # Total wallet balance across all users
+        wallet_pipeline = [
+            {
+                "$group": {
+                    "_id": None,
+                    "total_wallet_balance": {"$sum": "$wallet_balance"}
+                }
+            }
+        ]
+        wallet_result = await db.users.aggregate(wallet_pipeline).to_list(1)
+        total_wallet_balance = wallet_result[0]["total_wallet_balance"] if wallet_result else 0
+        
+        return {
+            "users": {
+                "total": total_users,
+                "new_this_month": new_users_this_month,
+                "growth_percentage": round((new_users_this_month / max(total_users - new_users_this_month, 1)) * 100, 1)
+            },
+            "bookings": {
+                "total": total_bookings,
+                "pending": pending_bookings,
+                "paid": paid_bookings,
+                "yoga_classes": total_yoga_bookings,
+                "yoga_packages": total_yoga_packages,
+                "consultations": total_consultations
+            },
+            "revenue": {
+                "total": round(total_revenue, 2),
+                "this_month": round(revenue_this_month, 2),
+                "wallet_balance": round(total_wallet_balance, 2)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error fetching admin stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Get All Users (Admin)
+@api_router.get("/admin/users")
+async def get_all_users(
+    skip: int = 0,
+    limit: int = 50,
+    search: str = None,
+    sort_by: str = "created_at",
+    order: str = "desc"
+):
+    """Get all users with pagination and search"""
+    try:
+        query = {}
+        if search:
+            query["$or"] = [
+                {"full_name": {"$regex": search, "$options": "i"}},
+                {"email": {"$regex": search, "$options": "i"}},
+                {"phone": {"$regex": search, "$options": "i"}}
+            ]
+        
+        sort_order = -1 if order == "desc" else 1
+        
+        users = await db.users.find(query).sort(sort_by, sort_order).skip(skip).limit(limit).to_list(limit)
+        total = await db.users.count_documents(query)
+        
+        # Convert ObjectId and remove password hashes
+        users_serialized = []
+        for user in users:
+            user = serialize_doc(user)
+            user.pop("password_hash", None)
+            users_serialized.append(user)
+        
+        return {
+            "users": users_serialized,
+            "total": total,
+            "page": skip // limit + 1,
+            "pages": (total + limit - 1) // limit
+        }
+    except Exception as e:
+        logger.error(f"Error fetching users: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Get All Bookings (Admin)
+@api_router.get("/admin/bookings")
+async def get_all_bookings(
+    skip: int = 0,
+    limit: int = 50,
+    status: str = None,
+    booking_type: str = None  # 'astrology', 'yoga_class', 'yoga_package', 'consultation'
+):
+    """Get all bookings across all types"""
+    try:
+        result = {
+            "astrology_bookings": [],
+            "yoga_class_bookings": [],
+            "yoga_package_purchases": [],
+            "yoga_consultations": []
+        }
+        
+        # Astrology bookings
+        if not booking_type or booking_type == "astrology":
+            query = {}
+            if status:
+                query["status"] = status
+            astrology = await db.bookings.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+            result["astrology_bookings"] = serialize_doc(astrology)
+        
+        # Yoga class bookings
+        if not booking_type or booking_type == "yoga_class":
+            query = {}
+            if status:
+                query["status"] = status
+            yoga_classes = await db.yoga_bookings.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+            result["yoga_class_bookings"] = serialize_doc(yoga_classes)
+        
+        # Yoga package purchases
+        if not booking_type or booking_type == "yoga_package":
+            query = {}
+            if status:
+                query["status"] = status
+            yoga_packages = await db.yoga_purchases.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+            result["yoga_package_purchases"] = serialize_doc(yoga_packages)
+        
+        # Yoga consultations
+        if not booking_type or booking_type == "consultation":
+            query = {}
+            if status:
+                query["status"] = status
+            consultations = await db.yoga_consultations.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+            result["yoga_consultations"] = serialize_doc(consultations)
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching bookings: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Get All Transactions (Admin)
+@api_router.get("/admin/transactions")
+async def get_all_transactions(
+    skip: int = 0,
+    limit: int = 100,
+    transaction_type: str = None,  # 'credit' or 'debit'
+    user_id: str = None
+):
+    """Get all transactions with filters"""
+    try:
+        query = {}
+        if transaction_type:
+            query["type"] = transaction_type
+        if user_id:
+            query["user_id"] = user_id
+        
+        transactions = await db.transactions.find(query).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+        total = await db.transactions.count_documents(query)
+        
+        return {
+            "transactions": serialize_doc(transactions),
+            "total": total,
+            "page": skip // limit + 1,
+            "pages": (total + limit - 1) // limit
+        }
+    except Exception as e:
+        logger.error(f"Error fetching transactions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Update Booking Status (Admin)
+class UpdateBookingStatus(BaseModel):
+    status: str  # 'pending', 'paid', 'completed', 'cancelled'
+
+@api_router.put("/admin/bookings/{booking_id}/status")
+async def update_booking_status(
+    booking_id: str,
+    status_data: UpdateBookingStatus,
+    booking_type: str = "astrology"  # 'astrology', 'yoga_class', 'yoga_package', 'consultation'
+):
+    """Update booking status"""
+    try:
+        collection_map = {
+            "astrology": db.bookings,
+            "yoga_class": db.yoga_bookings,
+            "yoga_package": db.yoga_purchases,
+            "consultation": db.yoga_consultations
+        }
+        
+        collection = collection_map.get(booking_type, db.bookings)
+        
+        result = await collection.update_one(
+            {"id": booking_id},
+            {"$set": {
+                "status": status_data.status,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        updated_booking = await collection.find_one({"id": booking_id})
+        
+        return {
+            "success": True,
+            "message": "Booking status updated",
+            "booking": serialize_doc(updated_booking)
+        }
+    except Exception as e:
+        logger.error(f"Error updating booking status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Get Recent Activity (Admin)
+@api_router.get("/admin/recent-activity")
+async def get_recent_activity(limit: int = 20):
+    """Get recent activity across all types"""
+    try:
+        activities = []
+        
+        # Recent user signups
+        recent_users = await db.users.find().sort("created_at", -1).limit(5).to_list(5)
+        for user in recent_users:
+            activities.append({
+                "type": "user_signup",
+                "message": f"{user['full_name']} signed up",
+                "timestamp": user["created_at"],
+                "user_id": user["id"]
+            })
+        
+        # Recent bookings
+        recent_bookings = await db.bookings.find().sort("created_at", -1).limit(5).to_list(5)
+        for booking in recent_bookings:
+            activities.append({
+                "type": "astrology_booking",
+                "message": f"New astrology booking - {booking['service_name']}",
+                "timestamp": booking["created_at"],
+                "booking_id": booking["id"],
+                "user_id": booking["user_id"]
+            })
+        
+        # Recent transactions
+        recent_transactions = await db.transactions.find().sort("created_at", -1).limit(5).to_list(5)
+        for txn in recent_transactions:
+            activities.append({
+                "type": "transaction",
+                "message": f"₹{txn['amount']} {txn['type']} - {txn['description']}",
+                "timestamp": txn["created_at"],
+                "user_id": txn["user_id"]
+            })
+        
+        # Sort all activities by timestamp
+        activities.sort(key=lambda x: x["timestamp"], reverse=True)
+        
+        return {"activities": activities[:limit]}
+    except Exception as e:
+        logger.error(f"Error fetching recent activity: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Revenue Analytics (Admin)
+@api_router.get("/admin/revenue-analytics")
+async def get_revenue_analytics(days: int = 30):
+    """Get revenue analytics for the past N days"""
+    try:
+        start_date = datetime.utcnow() - timedelta(days=days)
+        
+        # Daily revenue
+        daily_revenue = await db.transactions.aggregate([
+            {
+                "$match": {
+                    "type": "credit",
+                    "created_at": {"$gte": start_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "$dateToString": {
+                            "format": "%Y-%m-%d",
+                            "date": "$created_at"
+                        }
+                    },
+                    "revenue": {"$sum": "$amount"},
+                    "count": {"$sum": 1}
+                }
+            },
+            {
+                "$sort": {"_id": 1}
+            }
+        ]).to_list(days)
+        
+        # Revenue by booking type
+        booking_revenue = await db.transactions.aggregate([
+            {
+                "$match": {
+                    "type": "debit",
+                    "created_at": {"$gte": start_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$description",
+                    "revenue": {"$sum": "$amount"},
+                    "count": {"$sum": 1}
+                }
+            }
+        ]).to_list(100)
+        
+        return {
+            "daily_revenue": daily_revenue,
+            "booking_revenue": booking_revenue,
+            "period_days": days
+        }
+    except Exception as e:
+        logger.error(f"Error fetching revenue analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Delete User (Admin)
+@api_router.delete("/admin/users/{user_id}")
+async def delete_user(user_id: str):
+    """Delete a user and all their data"""
+    try:
+        # Delete user
+        result = await db.users.delete_one({"id": user_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Delete user's bookings
+        await db.bookings.delete_many({"user_id": user_id})
+        await db.yoga_bookings.delete_many({"user_id": user_id})
+        await db.yoga_purchases.delete_many({"user_id": user_id})
+        await db.yoga_consultations.delete_many({"user_id": user_id})
+        
+        # Delete user's transactions
+        await db.transactions.delete_many({"user_id": user_id})
+        
+        return {
+            "success": True,
+            "message": "User and all associated data deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting user: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Update User Wallet (Admin)
+class AdminWalletUpdate(BaseModel):
+    amount: float
+    action: str  # 'add' or 'deduct'
+    reason: str
+
+@api_router.post("/admin/users/{user_id}/wallet")
+async def admin_update_wallet(user_id: str, wallet_data: AdminWalletUpdate):
+    """Admin endpoint to add or deduct wallet balance"""
+    try:
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        current_balance = user.get("wallet_balance", 0)
+        
+        if wallet_data.action == "add":
+            new_balance = current_balance + wallet_data.amount
+            transaction_type = "credit"
+        elif wallet_data.action == "deduct":
+            if current_balance < wallet_data.amount:
+                raise HTTPException(status_code=400, detail="Insufficient balance")
+            new_balance = current_balance - wallet_data.amount
+            transaction_type = "debit"
+        else:
+            raise HTTPException(status_code=400, detail="Invalid action")
+        
+        # Update wallet
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {"wallet_balance": new_balance}}
+        )
+        
+        # Create transaction
+        transaction = TransactionRecord(
+            user_id=user_id,
+            type=transaction_type,
+            amount=wallet_data.amount,
+            balance_after=new_balance,
+            description=f"Admin: {wallet_data.reason}",
+        )
+        await db.transactions.insert_one(transaction.dict())
+        
+        return {
+            "success": True,
+            "message": f"Wallet {wallet_data.action}ed successfully",
+            "new_balance": new_balance
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating wallet: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============= ASTROLOGER DASHBOARD ENDPOINTS =============
+
+@api_router.get("/astrologers/bookings")
+async def get_astrologer_bookings(name: str):
+    """Get all bookings for a specific astrologer by name"""
+    try:
+        if not name or name == "undefined":
+            raise HTTPException(status_code=400, detail="Astrologer name is required")
+        
+        # Find all bookings for this astrologer
+        bookings = await db.bookings.find({"astrologer_name": name}).sort("created_at", -1).to_list(200)
+        
+        # Fetch user details for each booking
+        enriched_bookings = []
+        for booking in bookings:
+            user = await db.users.find_one({"id": booking["user_id"]})
+            enriched_booking = serialize_doc(booking)
+            if user:
+                enriched_booking["user_name"] = user.get("full_name", "Unknown")
+                enriched_booking["user_email"] = user.get("email", "")
+                enriched_booking["user_phone"] = user.get("phone", "")
+            else:
+                enriched_booking["user_name"] = "Unknown User"
+                enriched_booking["user_email"] = ""
+                enriched_booking["user_phone"] = ""
+            
+            # Map database fields to frontend expected fields
+            enriched_booking["duration"] = enriched_booking.get("service_duration", "")
+            
+            enriched_bookings.append(enriched_booking)
+        
+        return {"bookings": enriched_bookings}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching astrologer bookings: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/astrologers/stats")
+async def get_astrologer_stats(name: str):
+    """Get statistics for a specific astrologer"""
+    try:
+        if not name or name == "undefined":
+            raise HTTPException(status_code=400, detail="Astrologer name is required")
+        
+        # Get all bookings for this astrologer
+        all_bookings = await db.bookings.find({"astrologer_name": name}).to_list(1000)
+        
+        # Calculate stats
+        total_bookings = len(all_bookings)
+        completed_bookings = len([b for b in all_bookings if b.get("status") == "completed"])
+        pending_bookings = len([b for b in all_bookings if b.get("status") == "pending"])
+        cancelled_bookings = len([b for b in all_bookings if b.get("status") == "cancelled"])
+        
+        # Calculate earnings
+        total_earnings = sum(b.get("service_price", 0) for b in all_bookings if b.get("status") in ["paid", "completed"])
+        
+        # This month earnings
+        month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        this_month_bookings = [b for b in all_bookings if b.get("created_at", datetime.min) >= month_start]
+        this_month_earnings = sum(b.get("service_price", 0) for b in this_month_bookings if b.get("status") in ["paid", "completed"])
+        
+        # This week bookings
+        week_start = datetime.utcnow() - timedelta(days=7)
+        this_week_bookings = len([b for b in all_bookings if b.get("created_at", datetime.min) >= week_start])
+        
+        # Get astrologer profile for rating and reviews
+        from bson.objectid import ObjectId
+        astrologer = await db.astrologers.find_one({"name": name})
+        
+        average_rating = astrologer.get("rating", 0) if astrologer else 0
+        total_reviews = astrologer.get("reviews", 0) if astrologer else 0
+        
+        return {
+            "total_bookings": total_bookings,
+            "completed_bookings": completed_bookings,
+            "pending_bookings": pending_bookings,
+            "cancelled_bookings": cancelled_bookings,
+            "total_earnings": round(total_earnings, 2),
+            "this_month_earnings": round(this_month_earnings, 2),
+            "this_week_bookings": this_week_bookings,
+            "average_rating": average_rating,
+            "total_reviews": total_reviews
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching astrologer stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/astrologers/bookings/{booking_id}/status")
+async def update_astrologer_booking_status(
+    booking_id: str,
+    status_data: UpdateBookingStatus
+):
+    """Update booking status from astrologer dashboard"""
+    try:
+        result = await db.bookings.update_one(
+            {"id": booking_id},
+            {"$set": {
+                "status": status_data.status,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        updated_booking = await db.bookings.find_one({"id": booking_id})
+        
+        return {
+            "success": True,
+            "message": "Booking status updated successfully",
+            "booking": serialize_doc(updated_booking)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating booking status: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
@@ -877,13 +1474,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

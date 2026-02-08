@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { useUser } from '../../context/UserContext';
 
 // API Configuration - Update this with your actual backend URL
-const API_URL = 'http://192.168.1.2:3000/api';
+const API_URL = 'https://yoga-app-5kkj.vercel.app/api';
 
 interface Service {
   name: string;

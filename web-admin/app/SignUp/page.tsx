@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User, Star } from 'lucide-react';
 
 interface SignUpProps {
-  onSignUp: () => void;
+  onSignUp: (name: string, email: string, password: string, confirmPassword: string) => Promise<boolean>;
   onSwitchToLogin: () => void;
 }
 
@@ -19,6 +19,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -27,38 +28,55 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     // Validation
     if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
     if (!formData.email.includes('@')) {
       setError('Please enter a valid email');
+      setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters');
+      setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
     if (!agreeTerms) {
       setError('Please agree to the terms and conditions');
+      setLoading(false);
       return;
     }
 
-    // Success - in real app, this would call an API
-    onSignUp();
+    // Call the onSignUp function
+    const success = await onSignUp(
+      formData.fullName,
+      formData.email,
+      formData.password,
+      formData.confirmPassword
+    );
+
+    if (!success) {
+      setError('Failed to create account. Please try again.');
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -97,7 +115,8 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="John Doe"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
               </div>
             </div>
@@ -115,7 +134,8 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="john@example.com"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
               </div>
             </div>
@@ -133,11 +153,13 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Min. 6 characters"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -158,11 +180,13 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Re-enter password"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={loading}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -176,6 +200,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                 type="checkbox"
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
+                disabled={loading}
                 className="w-4 h-4 mt-1 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
               />
               <label className="ml-2 text-sm text-gray-600">
@@ -193,19 +218,35 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
             {/* Sign Up Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Create Account
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </form>
+
+          {/* Info Box */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-900">
+              <strong>Note:</strong> All new accounts are created as Astrologer accounts and will access the Astrologer Dashboard.
+            </p>
+          </div>
 
           {/* Login Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <button 
+              <button
                 onClick={onSwitchToLogin}
-                className="text-indigo-600 hover:text-indigo-700 font-semibold"
+                disabled={loading}
+                className="text-indigo-600 hover:text-indigo-700 font-semibold disabled:opacity-50"
               >
                 Sign in
               </button>

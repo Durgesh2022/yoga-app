@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, Star } from 'lucide-react';
 
 interface LoginProps {
-  onLogin: () => void;
+  onLogin: (email: string, password: string) => Promise<boolean>;
   onSwitchToSignUp: () => void;
 }
 
@@ -14,28 +14,34 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
     if (!email.includes('@')) {
       setError('Please enter a valid email');
+      setLoading(false);
       return;
     }
 
-    // Simple authentication (in real app, this would call an API)
-    if (email === 'admin@astro.com' && password === 'admin123') {
-      onLogin();
-    } else {
+    // Call the onLogin function with credentials
+    const success = await onLogin(email, password);
+
+    if (!success) {
       setError('Invalid email or password');
     }
+    
+    setLoading(false);
   };
 
   return (
@@ -73,7 +79,8 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@astro.com"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
               </div>
             </div>
@@ -90,11 +97,13 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
+                  disabled={loading}
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -109,6 +118,7 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={loading}
                   className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                 />
                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
@@ -121,26 +131,35 @@ export default function Login({ onLogin, onSwitchToSignUp }: LoginProps) {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              Sign In
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-indigo-50 rounded-lg">
             <p className="text-sm font-medium text-indigo-900 mb-2">Demo Credentials:</p>
-            <p className="text-xs text-indigo-700">Email: admin@astro.com</p>
-            <p className="text-xs text-indigo-700">Password: admin123</p>
+            <p className="text-xs text-indigo-700"><strong>Admin:</strong> admin@astro.com / admin123</p>
+            <p className="text-xs text-indigo-700 mt-1"><strong>Astrologer:</strong> Create account via signup</p>
           </div>
 
           {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <button 
+              <button
                 onClick={onSwitchToSignUp}
-                className="text-indigo-600 hover:text-indigo-700 font-semibold"
+                disabled={loading}
+                className="text-indigo-600 hover:text-indigo-700 font-semibold disabled:opacity-50"
               >
                 Sign up
               </button>

@@ -6,11 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "init-admin": "ts-node -P tsconfig.scripts.json scripts/init-admin.ts"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.4",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.563.0",
-    "mongodb": "^7.0.0",
+    "mongodb": "^7.1.0",
     "mongoose": "^9.1.5",
     "next": "16.1.5",
     "react": "19.2.3",
@@ -24,6 +28,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.5",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
