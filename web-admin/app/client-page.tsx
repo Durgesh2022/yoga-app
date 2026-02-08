@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import AstrologerDashboard from './astrologerdashboard/page';
+import AstrologerDashboard from './astrologerdashboard/dashboard';
 import Dashboard from './dashboard';
 import Login from './login/Login';
 import SignUp from './signup/Signup';
