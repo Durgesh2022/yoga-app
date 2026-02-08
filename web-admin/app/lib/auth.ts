@@ -1,9 +1,12 @@
 // lib/auth.ts
-import jwt from 'jsonwebtoken';
+import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { IUser } from '../models/User';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
+const JWT_SECRET: Secret =
+  process.env.JWT_SECRET ?? 'your-secret-key-change-in-production';
+
+const JWT_EXPIRE: SignOptions['expiresIn'] =
+  (process.env.JWT_EXPIRE as SignOptions['expiresIn']) ?? '7d';
 
 export interface JWTPayload {
   userId: string;
