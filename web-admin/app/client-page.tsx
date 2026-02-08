@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import AstrologerDashboard from './astrologerdashboard/page';
 import Dashboard from './dashboard';
-import Login from './login/page';
-import SignUp from './signup/page';
+import Login from './login/Login';
+import SignUp from './signup/Signup';
 
 interface User {
   id: string;
