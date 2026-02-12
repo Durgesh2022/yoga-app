@@ -25,24 +25,34 @@ interface Service {
   description: string;
   tag: 'intro' | 'popular' | '';
 }
+interface Slot {
+  time: string;
+  isBooked?: boolean;
+}
+
+interface Availability {
+  date: string; // "2026-02-12"
+  slots: Slot[];
+}
+
 
 // Helper function to get next 4 days including today
-const getNext4Days = () => {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const dates = [];
+// const getNext4Days = () => {
+//   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+//   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+//   const dates = [];
   
-  for (let i = 0; i < 4; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() + i);
-    const dayName = days[date.getDay()];
-    const dayNum = date.getDate();
-    const monthName = months[date.getMonth()];
-    dates.push(`${dayName}, ${dayNum} ${monthName}`);
-  }
+//   for (let i = 0; i < 4; i++) {
+//     const date = new Date();
+//     date.setDate(date.getDate() + i);
+//     const dayName = days[date.getDay()];
+//     const dayNum = date.getDate();
+//     const monthName = months[date.getMonth()];
+//     dates.push(`${dayName}, ${dayNum} ${monthName}`);
+//   }
   
-  return dates;
-};
+//   return dates;
+// };
 
 export default function AstrologerDetailScreen() {
   const router = useRouter();
@@ -50,14 +60,15 @@ export default function AstrologerDetailScreen() {
   const { user } = useUser();
   
   // Generate dynamic dates
-  const AVAILABLE_DATES = useMemo(() => getNext4Days(), []);
+  
   
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState('Yatra');
   const [selectedServicePrice, setSelectedServicePrice] = useState(800);
   const [selectedServiceDuration, setSelectedServiceDuration] = useState('40 min');
-  const [selectedDate, setSelectedDate] = useState(AVAILABLE_DATES[0]);
-  const [selectedTime, setSelectedTime] = useState('7:00 PM');
+ const [selectedDate, setSelectedDate] = useState<string | null>(null);
+const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [astrologerData, setAstrologerData] = useState<any>(null);
   const [loadingAstrologer, setLoadingAstrologer] = useState(false);
@@ -115,6 +126,22 @@ export default function AstrologerDetailScreen() {
 
   // Use MongoDB data if available, otherwise use params
   const displayAstrologer = astrologerData || astrologer;
+  const availability: Availability[] = displayAstrologer?.availability || [];
+useEffect(() => {
+  if (availability.length > 0) {
+    const firstAvailableDay = availability[0];
+    setSelectedDate(firstAvailableDay.date);
+
+    const firstAvailableSlot = firstAvailableDay.slots.find(
+      (slot) => !slot.isBooked
+    );
+
+    if (firstAvailableSlot) {
+      setSelectedTime(firstAvailableSlot.time);
+    }
+  }
+}, [availability]);
+
   const displayServices = astrologerData?.services || astrologer.services;
 
   const handleAddService = (service: Service) => {
@@ -123,6 +150,10 @@ export default function AstrologerDetailScreen() {
     setSelectedServiceDuration(service.duration);
     setConfirmModalVisible(true);
   };
+const formatDate = (isoDate: string) => {
+  const date = new Date(isoDate);
+  return date.toDateString(); // e.g. "Wed Feb 12 2026"
+};
 
   const handleProceedToCheckout = async () => {
     if (!user) {
@@ -332,33 +363,60 @@ export default function AstrologerDetailScreen() {
               {/* Choose date */}
               <Text style={styles.sectionLabel}>Choose date</Text>
               <View style={styles.tabsRow}>
-                {AVAILABLE_DATES.map((date) => (
-                  <TouchableOpacity
-                    key={date}
-                    style={[styles.tab, selectedDate === date && styles.tabSelected]}
-                    onPress={() => setSelectedDate(date)}
-                  >
-                    <Text style={[styles.tabText, selectedDate === date && styles.tabTextSelected]}>
-                      {date}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+               {availability.map((day) => (
+  <TouchableOpacity
+    key={day.date}
+    style={[
+      styles.tab,
+      selectedDate === day.date && styles.tabSelected,
+    ]}
+    onPress={() => {
+      setSelectedDate(day.date);
+      const firstAvailableSlot = day.slots.find(
+        (slot) => !slot.isBooked
+      );
+      setSelectedTime(firstAvailableSlot?.time || null);
+    }}
+  >
+    <Text
+      style={[
+        styles.tabText,
+        selectedDate === day.date && styles.tabTextSelected,
+      ]}
+    >
+      {formatDate(day.date)}
+    </Text>
+  </TouchableOpacity>
+))}
+
               </View>
 
               {/* Choose time */}
               <Text style={styles.sectionLabel}>Choose time</Text>
               <View style={styles.tabsRow}>
-                {['7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM'].map((time) => (
-                  <TouchableOpacity
-                    key={time}
-                    style={[styles.tab, selectedTime === time && styles.tabSelected]}
-                    onPress={() => setSelectedTime(time)}
-                  >
-                    <Text style={[styles.tabText, selectedTime === time && styles.tabTextSelected]}>
-                      {time}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {availability
+  .find((day) => day.date === selectedDate)
+  ?.slots.filter((slot) => !slot.isBooked)
+  .map((slot) => (
+    <TouchableOpacity
+      key={slot.time}
+      style={[
+        styles.tab,
+        selectedTime === slot.time && styles.tabSelected,
+      ]}
+      onPress={() => setSelectedTime(slot.time)}
+    >
+      <Text
+        style={[
+          styles.tabText,
+          selectedTime === slot.time && styles.tabTextSelected,
+        ]}
+      >
+        {slot.time}
+      </Text>
+    </TouchableOpacity>
+  ))}
+
               </View>
 
               {/* Balance */}

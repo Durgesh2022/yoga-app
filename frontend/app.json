@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "CeletialsHealing",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,7 +17,8 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.abhinav200.frontend"
+      "package": "com.abhinav200.frontend",
+       "permissions": [] 
     },
     "web": {
       "bundler": "metro",

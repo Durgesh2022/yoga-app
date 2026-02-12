@@ -1,6 +1,8 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// Service interface
+/* ============================
+   Service Interface
+============================ */
 export interface IService {
   name: string;
   duration: string;
@@ -9,7 +11,25 @@ export interface IService {
   tag: 'intro' | 'popular' | '';
 }
 
-// Astrologer interface
+/* ============================
+   Slot Interface
+============================ */
+export interface ISlot {
+  time: string; // "18:30"
+  isBooked: boolean;
+}
+
+/* ============================
+   Availability Interface
+============================ */
+export interface IAvailability {
+  date: string; // "2026-02-15"
+  slots: ISlot[];
+}
+
+/* ============================
+   Astrologer Interface
+============================ */
 export interface IAstrologer extends Document {
   name: string;
   expertise: string;
@@ -20,11 +40,14 @@ export interface IAstrologer extends Document {
   reviews: number;
   available: boolean;
   services: IService[];
+  availability: IAvailability[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Service schema
+/* ============================
+   Service Schema
+============================ */
 const ServiceSchema = new Schema<IService>({
   name: {
     type: String,
@@ -50,7 +73,42 @@ const ServiceSchema = new Schema<IService>({
   },
 });
 
-// Astrologer schema
+/* ============================
+   Slot Schema
+============================ */
+const SlotSchema = new Schema<ISlot>({
+  time: {
+    type: String,
+    required: true,
+  },
+  isBooked: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+/* ============================
+   Availability Schema
+============================ */
+const AvailabilitySchema = new Schema<IAvailability>({
+  date: {
+    type: String,
+    required: true,
+  },
+  slots: {
+    type: [SlotSchema],
+    validate: {
+      validator: function (v: ISlot[]) {
+        return v && v.length > 0;
+      },
+      message: 'At least one slot is required per date',
+    },
+  },
+});
+
+/* ============================
+   Astrologer Schema
+============================ */
 const AstrologerSchema = new Schema<IAstrologer>(
   {
     name: {
@@ -71,7 +129,7 @@ const AstrologerSchema = new Schema<IAstrologer>(
       type: [String],
       required: [true, 'At least one language is required'],
       validate: {
-        validator: function(v: string[]) {
+        validator: function (v: string[]) {
           return v && v.length > 0;
         },
         message: 'At least one language must be specified',
@@ -103,11 +161,15 @@ const AstrologerSchema = new Schema<IAstrologer>(
       type: [ServiceSchema],
       required: [true, 'At least one service is required'],
       validate: {
-        validator: function(v: IService[]) {
+        validator: function (v: IService[]) {
           return v && v.length > 0;
         },
         message: 'At least one service must be specified',
       },
+    },
+    availability: {
+      type: [AvailabilitySchema],
+      default: [],
     },
   },
   {
@@ -115,13 +177,24 @@ const AstrologerSchema = new Schema<IAstrologer>(
   }
 );
 
-// Index for faster queries
+/* ============================
+   Indexes (Important)
+============================ */
+
+// Faster search
 AstrologerSchema.index({ name: 1 });
 AstrologerSchema.index({ available: 1 });
 AstrologerSchema.index({ rating: -1 });
 
-// Prevent model recompilation in development
-const Astrologer: Model<IAstrologer> = 
-  mongoose.models.Astrologer || mongoose.model<IAstrologer>('Astrologer', AstrologerSchema);
+// For booking performance
+AstrologerSchema.index({ 'availability.date': 1 });
+AstrologerSchema.index({ 'availability.slots.time': 1 });
+
+/* ============================
+   Prevent Model Recompile
+============================ */
+const Astrologer: Model<IAstrologer> =
+  mongoose.models.Astrologer ||
+  mongoose.model<IAstrologer>('Astrologer', AstrologerSchema);
 
 export default Astrologer;

@@ -7,6 +7,15 @@ interface AddAstrologerFormProps {
   onClose: () => void;
   onSubmit: (astrologerData: AstrologerFormData) => void;
 }
+interface SlotData {
+  time: string;
+  isBooked?: boolean;
+}
+
+interface AvailabilityData {
+  date: string;
+  slots: SlotData[];
+}
 
 export interface AstrologerFormData {
   name: string;
@@ -18,7 +27,9 @@ export interface AstrologerFormData {
   languages: string[];
   experience: string;
   services: ServiceData[];
+  availability: AvailabilityData[]; // ✅ NEW
 }
+
 
 interface ServiceData {
   name: string;
@@ -68,6 +79,12 @@ export default function AddAstrologerForm({ onClose, onSubmit }: AddAstrologerFo
       { name: 'Vishwas', duration: '60 min', price: 1200, description: 'Complete horoscope reading', tag: '' },
       { name: 'Anant', duration: '90 min', price: 1500, description: 'In-depth life path & future guidance', tag: '' },
     ],
+    availability: [
+    {
+      date: '',
+      slots: [{ time: '', isBooked: false }],
+    },
+  ],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -140,6 +157,40 @@ export default function AddAstrologerForm({ onClose, onSubmit }: AddAstrologerFo
       onClose();
     }
   };
+  const handleDateChange = (index: number, value: string) => {
+  const updated = [...formData.availability];
+  updated[index].date = value;
+  handleInputChange('availability', updated);
+};
+
+const handleSlotChange = (
+  dayIndex: number,
+  slotIndex: number,
+  value: string
+) => {
+  const updated = [...formData.availability];
+  updated[dayIndex].slots[slotIndex].time = value;
+  handleInputChange('availability', updated);
+};
+
+const addNewDate = () => {
+  handleInputChange('availability', [
+    ...formData.availability,
+    { date: '', slots: [{ time: '', isBooked: false }] },
+  ]);
+};
+
+const addSlot = (dayIndex: number) => {
+  const updated = [...formData.availability];
+  updated[dayIndex].slots.push({ time: '', isBooked: false });
+  handleInputChange('availability', updated);
+};
+
+const removeDate = (index: number) => {
+  const updated = formData.availability.filter((_, i) => i !== index);
+  handleInputChange('availability', updated);
+};
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 text-black">
@@ -314,23 +365,69 @@ export default function AddAstrologerForm({ onClose, onSubmit }: AddAstrologerFo
             </div>
 
             {/* Availability */}
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Clock size={20} className="text-indigo-600" />
-                Availability
-              </h3>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.available}
-                  onChange={(e) => handleInputChange('available', e.target.checked)}
-                  className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                />
-                <span className="ml-3 text-gray-700 font-medium">
-                  Available for consultations
-                </span>
-              </label>
-            </div>
+            {/* Availability Schedule */}
+<div className="bg-gray-50 p-6 rounded-xl">
+  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+    <Clock size={20} className="text-indigo-600" />
+    Availability Schedule
+  </h3>
+
+  {formData.availability.map((day, dayIndex) => (
+    <div
+      key={dayIndex}
+      className="bg-white p-4 rounded-lg border border-gray-200 mb-4"
+    >
+      <div className="flex justify-between items-center mb-3">
+        <input
+          type="date"
+          value={day.date}
+          onChange={(e) => handleDateChange(dayIndex, e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+        />
+
+        <button
+          type="button"
+          onClick={() => removeDate(dayIndex)}
+          className="text-red-500 text-sm"
+        >
+          Remove
+        </button>
+      </div>
+
+      {/* Slots */}
+      <div className="space-y-2">
+        {day.slots.map((slot, slotIndex) => (
+          <input
+            key={slotIndex}
+            type="time"
+            value={slot.time}
+            onChange={(e) =>
+              handleSlotChange(dayIndex, slotIndex, e.target.value)
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+          />
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => addSlot(dayIndex)}
+        className="mt-3 text-indigo-600 text-sm font-medium"
+      >
+        + Add Time Slot
+      </button>
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addNewDate}
+    className="text-indigo-600 font-medium"
+  >
+    + Add New Date
+  </button>
+</div>
+
 
             {/* Services */}
             <div className="bg-gray-50 p-6 rounded-xl">

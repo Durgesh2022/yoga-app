@@ -57,6 +57,33 @@ class StatusCheckCreate(BaseModel):
     client_name: str
 
 
+# Admin/Astrologer Authentication Models
+class AdminCreate(BaseModel):
+    fullName: str
+    email: str
+    password: str
+    role: str = "admin"  # "admin" or "astrologer"
+
+class AdminLogin(BaseModel):
+    email: str
+    password: str
+
+class AdminResponse(BaseModel):
+    id: str
+    fullName: str
+    email: str
+    role: str
+    created_at: datetime
+
+class Admin(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fullName: str
+    email: str
+    password_hash: str
+    role: str = "admin"  # "admin" or "astrologer"
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 # User Models
 class UserCreate(BaseModel):
     full_name: str
@@ -285,6 +312,74 @@ async def create_status_check(input: StatusCheckCreate):
 async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
+
+
+# ============= ADMIN/ASTROLOGER AUTHENTICATION =============
+
+@api_router.post("/auth/admin-signup")
+async def admin_signup(admin_data: AdminCreate):
+    """Register a new admin or astrologer"""
+    # Check if email already exists
+    existing_admin = await db.admins.find_one({"email": admin_data.email})
+    if existing_admin:
+        return {
+            "success": False,
+            "message": "Email already registered"
+        }
+    
+    # Create new admin/astrologer
+    admin = Admin(
+        fullName=admin_data.fullName,
+        email=admin_data.email,
+        password_hash=hash_password(admin_data.password),
+        role=admin_data.role,
+    )
+    
+    await db.admins.insert_one(admin.dict())
+    
+    return {
+        "success": True,
+        "message": "Registration successful",
+        "data": AdminResponse(
+            id=admin.id,
+            fullName=admin.fullName,
+            email=admin.email,
+            role=admin.role,
+            created_at=admin.created_at,
+        )
+    }
+
+
+@api_router.post("/auth/admin-login")
+async def admin_login(credentials: AdminLogin):
+    """Login for admin or astrologer"""
+    # Find admin by email
+    admin = await db.admins.find_one({"email": credentials.email})
+    
+    if not admin:
+        return {
+            "success": False,
+            "message": "Invalid email or password"
+        }
+    
+    # Verify password
+    if admin["password_hash"] != hash_password(credentials.password):
+        return {
+            "success": False,
+            "message": "Invalid email or password"
+        }
+    
+    return {
+        "success": True,
+        "message": "Login successful",
+        "data": {
+            "id": admin["id"],
+            "fullName": admin["fullName"],
+            "email": admin["email"],
+            "role": admin["role"],
+            "created_at": admin["created_at"]
+        }
+    }
 
 
 # User Authentication Routes
