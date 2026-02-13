@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,17 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { setUser } = useUser();
+  const { setUser, user, isLoading } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace('/(tabs)/astrology');
+    }
+  }, [isLoading, user, router]);
 
   const handleLogin = async () => {
     if (!email.trim()) {
@@ -39,7 +45,7 @@ export default function LoginScreen() {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -66,7 +72,7 @@ export default function LoginScreen() {
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Login failed');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -74,6 +80,17 @@ export default function LoginScreen() {
     // Quick login for testing - bypasses authentication
     router.replace('/(tabs)/astrology');
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#D4A574" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -156,12 +173,12 @@ export default function LoginScreen() {
 
               {/* Login Button */}
               <TouchableOpacity
-                style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+                style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
                 onPress={handleLogin}
                 activeOpacity={0.8}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
-                {isLoading ? (
+                {isSubmitting ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <Text style={styles.loginButtonText}>Login</Text>
@@ -362,5 +379,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#D4A574',
     fontWeight: '500',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
   },
 });

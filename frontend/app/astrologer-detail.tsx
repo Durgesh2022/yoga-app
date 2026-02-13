@@ -82,6 +82,15 @@ const [selectedTime, setSelectedTime] = useState<string | null>(null);
     }
   }, [params.services]);
 
+  // Parse availability from params or use empty array
+  const availabilityFromParams = useMemo(() => {
+    try {
+      return params.availability ? JSON.parse(params.availability as string) : [];
+    } catch {
+      return [];
+    }
+  }, [params.availability]);
+
   // Get astrologer details from params or MongoDB
   const astrologer = {
     id: params.id as string || '1',
@@ -103,7 +112,7 @@ const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   // Fetch full astrologer details from MongoDB if we have an ID
   useEffect(() => {
-    if (params.id && !servicesFromParams.length) {
+    if (params.id) {
       fetchAstrologerDetails(params.id as string);
     }
   }, [params.id]);
@@ -126,7 +135,10 @@ const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   // Use MongoDB data if available, otherwise use params
   const displayAstrologer = astrologerData || astrologer;
-  const availability: Availability[] = displayAstrologer?.availability || [];
+  const availability: Availability[] =
+    astrologerData?.availability?.length
+      ? astrologerData.availability
+      : availabilityFromParams;
 useEffect(() => {
   if (availability.length > 0) {
     const firstAvailableDay = availability[0];
