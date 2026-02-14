@@ -981,7 +981,7 @@ async def get_user_transactions(user_id: str, limit: int = 50):
         {"user_id": user_id}
     ).sort("created_at", -1).to_list(limit)
     
-    return {"transactions": transactions}
+    return {"transactions": serialize_doc(transactions)}
 
 
 

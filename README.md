@@ -192,3 +192,4 @@ yarn add <package_name>
 ---
 
 Happy coding! 🙏✨
+"# celestials-app" 
