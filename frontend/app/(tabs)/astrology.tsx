@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../context/UserContext';
 
-// API Configuration - Update this with your actual backend URL
+// Use full URL for Expo Go compatibility
 const API_URL = 'https://yoga-app-5kkj.vercel.app/api';
 
 interface Service {

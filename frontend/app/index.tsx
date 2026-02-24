@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Keyboard,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -98,12 +97,11 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
       >
-        <TouchableOpacity onPress={Keyboard.dismiss} activeOpacity={1}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.backButton} />
@@ -207,8 +205,7 @@ export default function LoginScreen() {
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
