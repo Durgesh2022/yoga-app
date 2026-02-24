@@ -167,11 +167,34 @@ const formatDate = (isoDate: string) => {
   return date.toDateString(); // e.g. "Wed Feb 12 2026"
 };
 
+const getReadableError = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const err = error as Record<string, unknown>;
+    const detail = err.detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail) && detail.length > 0) {
+      const first = detail[0] as Record<string, unknown>;
+      if (first && typeof first.msg === 'string') {
+        const loc = Array.isArray(first.loc) ? first.loc.join('.') : '';
+        return loc ? `${loc}: ${first.msg}` : first.msg;
+      }
+    }
+    if (typeof err.message === 'string') return err.message;
+  }
+  return fallback;
+};
+
   const handleProceedToCheckout = async () => {
     if (!user) {
       Alert.alert('Login Required', 'Please login to book a session', [
         { text: 'OK', onPress: () => router.push('/') }
       ]);
+      return;
+    }
+    if (!selectedDate || !selectedTime) {
+      Alert.alert('Error', 'Please select a valid date and time slot');
       return;
     }
 
@@ -184,11 +207,13 @@ const formatDate = (isoDate: string) => {
         },
         body: JSON.stringify({
           user_id: user.id,
-          astrologer_id: displayAstrologer.id || displayAstrologer._id,
-          astrologer_name: displayAstrologer.name,
-          astrologer_expertise: displayAstrologer.expertise,
-          astrologer_experience: displayAstrologer.experience,
-          astrologer_languages: displayAstrologer.languages,
+          astrologer_id: String(displayAstrologer.id || displayAstrologer._id || ''),
+          astrologer_name: String(displayAstrologer.name || ''),
+          astrologer_expertise: String(displayAstrologer.expertise || ''),
+          astrologer_experience: String(displayAstrologer.experience || ''),
+          astrologer_languages: Array.isArray(displayAstrologer.languages)
+            ? displayAstrologer.languages.join(', ')
+            : String(displayAstrologer.languages || ''),
           service_name: selectedService,
           service_duration: selectedServiceDuration,
           service_price: selectedServicePrice,
@@ -200,7 +225,7 @@ const formatDate = (isoDate: string) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Booking failed');
+        throw new Error(getReadableError(data, 'Booking failed'));
       }
 
       setConfirmModalVisible(false);
@@ -215,8 +240,8 @@ const formatDate = (isoDate: string) => {
           astrologerName: displayAstrologer.name,
         }
       });
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create booking');
+    } catch (error: unknown) {
+      Alert.alert('Error', getReadableError(error, 'Failed to create booking'));
     } finally {
       setIsLoading(false);
     }

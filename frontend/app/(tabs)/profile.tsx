@@ -169,6 +169,8 @@ export default function ProfileScreen() {
           </View>
         ))}
 
+        <Text style={styles.taglineText}>Rooted in vedic India, crafted with ❤️</Text>
+
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
@@ -364,6 +366,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#EF4444',
+  },
+  taglineText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#9E9E9E',
+    marginTop: 20,
+    marginBottom: 10,
   },
   versionText: {
     textAlign: 'center',

@@ -95,14 +95,14 @@ export default function TransactionsScreen() {
           console.error('Invalid user data structure:', userData);
           setLoading(false);
           Alert.alert('Error', 'User session invalid. Please login again.', [
-            { text: 'OK', onPress: () => router.push('/login') }
+            { text: 'OK', onPress: () => router.push('/') }
           ]);
         }
       } else {
         console.error('No user data found in AsyncStorage');
         setLoading(false);
         Alert.alert('Login Required', 'Please login to view transactions.', [
-          { text: 'OK', onPress: () => router.push('/login') }
+          { text: 'OK', onPress: () => router.push('/') }
         ]);
       }
     } catch (error) {

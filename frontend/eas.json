@@ -18,7 +18,11 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "android": {
+        "buildType": "app-bundle"  // This tells EAS to build an APK
+      },
+      "autoIncrement": true,
+      "distribution": "store"
     }
   },
   "submit": {
