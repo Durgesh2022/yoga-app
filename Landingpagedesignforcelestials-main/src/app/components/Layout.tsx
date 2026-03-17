@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { ArrowRight, Instagram, Menu, MessageCircle, X } from 'lucide-react';
 import { motion } from 'motion/react';
+import React, { useState } from 'react';
 import { Link, Outlet } from 'react-router';
-import { Menu, X, Star, Instagram, MessageCircle, ArrowRight } from 'lucide-react';
 import logoImage from '../../assets/logo.png';
 
 export const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
@@ -61,9 +61,12 @@ export const Navbar = () => {
             <Link to="/how-it-works" onClick={() => setIsOpen(false)} className="block text-[#5C3D1E] font-medium text-lg">How It Works</Link>
             <a href="/#astrologers" onClick={() => setIsOpen(false)} className="block text-[#5C3D1E] font-medium text-lg">Our Astrologers</a>
             <Link to="/features" onClick={() => setIsOpen(false)} className="block text-[#5C3D1E] font-medium text-lg">Features</Link>
-            <button className="w-full bg-[#5C3D1E] text-[#F5ECD7] px-6 py-3 rounded-full font-medium mt-4">
+            <a
+          href="https://yoga-app-ozfi.vercel.app/"
+  rel="noopener noreferrer"
+   className="w-full bg-[#5C3D1E] text-[#F5ECD7] px-6 py-3 rounded-full font-medium mt-4">
               Login to Web App
-            </button>
+            </a>
           </div>
         </div>
       )}

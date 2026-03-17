@@ -32,16 +32,12 @@ const HeroSection = () => {
         </FadeIn>
         
         <FadeIn delay={0.3} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <button className="w-full sm:w-auto px-8 py-4 bg-[#D4A843] hover:bg-[#c29633] text-[#1A1511] text-lg font-semibold rounded-full shadow-lg transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2 min-h-[56px]">
-            Get Your Consultation <ArrowRight className="w-5 h-5" />
-          </button>
           <a
           href="https://yoga-app-ozfi.vercel.app/"
-  rel="noopener noreferrer"
-  className="w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-[#5C3D1E] text-[#5C3D1E] hover:bg-[#5C3D1E] hover:text-[#F5ECD7] text-lg font-semibold rounded-full transition-colors flex items-center justify-center min-h-[56px]"
->
-  Login to Web App
-</a>
+  rel="noopener noreferrer" className="w-full sm:w-auto px-8 py-4 bg-[#D4A843] hover:bg-[#c29633] text-[#1A1511] text-lg font-semibold rounded-full shadow-lg transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2 min-h-[56px]">
+            Get Your Consultation <ArrowRight className="w-5 h-5" />
+          </a>
+          
         </FadeIn>
 
         <FadeIn delay={0.4} className="border-t border-[#C8A97E]/30 pt-8">
