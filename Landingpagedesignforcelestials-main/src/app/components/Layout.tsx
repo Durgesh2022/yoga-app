@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link, Outlet } from 'react-router';
 import { Menu, X, Star, Instagram, MessageCircle, ArrowRight } from 'lucide-react';
-import logoImage from 'figma:asset/29fc7b53e1c9daabd5e6fffb20eab3c422c5e8dc.png';
+import logoImage from '../../assets/logo.png';
 
 export const FadeIn = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
   <motion.div
@@ -37,9 +37,12 @@ export const Navbar = () => {
             <a href="/#astrologers" className="text-[#5C3D1E]/80 hover:text-[#5C3D1E] font-medium transition-colors">Our Astrologers</a>
             <Link to="/features" className="text-[#5C3D1E]/80 hover:text-[#5C3D1E] font-medium transition-colors">Features</Link>
             
-            <button className="bg-[#5C3D1E] text-[#F5ECD7] px-6 py-2.5 rounded-full font-medium hover:bg-[#4A3016] transition-colors shadow-sm">
+             <a
+          href="https://yoga-app-ozfi.vercel.app/"
+  rel="noopener noreferrer"
+            className="bg-[#5C3D1E] text-[#F5ECD7] px-6 py-2.5 rounded-full font-medium hover:bg-[#4A3016] transition-colors shadow-sm">
               Login to Web App
-            </button>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FadeIn } from '../components/Layout';
 import { Sun, Link as LinkIcon, Map as MapIcon, ShieldCheck, Infinity as InfinityIcon, ArrowRight, Lock, RefreshCcw, Star, BookOpenCheck, Headset, Clock, Ban } from 'lucide-react';
-import logoImage from 'figma:asset/29fc7b53e1c9daabd5e6fffb20eab3c422c5e8dc.png';
+import logoImage from '../../assets/logo.png';
 
 export default function HowItWorks() {
   const sessions = [
