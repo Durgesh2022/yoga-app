@@ -1,6 +1,7 @@
 import { Activity, ArrowRight, BookOpenCheck, CheckCircle2, Headset, Lock, PhoneCall, RefreshCcw, ShieldCheck, Star, Target, X } from 'lucide-react';
 import logoImage from '../../assets/logo.png';
-import { FadeIn } from '../components/Layout';
+import { FadeIn } from '../components/Layout'
+import appPage from "../../assets/apppage.jpeg";
 
 const HeroSection = () => {
   return (
@@ -328,7 +329,7 @@ const AppPreview = () => {
             <FadeIn delay={0.2} className="relative z-10">
               <div className="relative rounded-[2.5rem] overflow-hidden border-8 border-[#1A1511] shadow-2xl bg-[#1A1511] aspect-[9/16] max-w-[320px] mx-auto lg:mr-0 lg:ml-auto transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
                 <img 
-                  src="https://images.unsplash.com/photo-1767449441925-737379bc2c4d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXNoYm9hcmQlMjBtb2JpbGUlMjBhcHB8ZW58MXx8fHwxNzczMTk4MzkwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
+                  src={appPage}
                   alt="App Interface" 
                   className="w-full h-full object-cover"
                 />

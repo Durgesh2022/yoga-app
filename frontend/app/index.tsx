@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
 
 // Use full URL for Expo Go compatibility
@@ -136,7 +136,7 @@ export default function LoginScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your email"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#000"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   value={email}
@@ -151,7 +151,7 @@ export default function LoginScreen() {
                   <TextInput
                     style={styles.passwordInput}
                     placeholder="Enter password"
-                    placeholderTextColor="#999"
+                    placeholderTextColor="#000"
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
@@ -163,7 +163,7 @@ export default function LoginScreen() {
                     <Ionicons 
                       name={showPassword ? 'eye-outline' : 'eye-off-outline'} 
                       size={22} 
-                      color="#999" 
+                      color="#000" 
                     />
                   </TouchableOpacity>
                 </View>
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#333',
+    color: '#000',
     borderWidth: 1,
     borderColor: '#E8E8E8',
   },
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#333',
+    color: '#000',
   },
   eyeIcon: {
     paddingHorizontal: 12,

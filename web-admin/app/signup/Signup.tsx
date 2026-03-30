@@ -1,7 +1,7 @@
 'use client';
 
+import { Eye, EyeOff, Lock, Mail, Star, User } from 'lucide-react';
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, Star } from 'lucide-react';
 
 interface SignUpProps {
   onSignUp: (name: string, email: string, password: string, confirmPassword: string) => Promise<boolean>;
@@ -104,7 +104,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Full Name
               </label>
               <div className="relative">
@@ -116,14 +116,14 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   onChange={handleChange}
                   placeholder="John Doe"
                   disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder:text-black focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
               </div>
             </div>
 
             {/* Email Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Email Address
               </label>
               <div className="relative">
@@ -135,14 +135,14 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   onChange={handleChange}
                   placeholder="john@example.com"
                   disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-black placeholder:text-black focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
               </div>
             </div>
 
             {/* Password Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Password
               </label>
               <div className="relative">
@@ -154,7 +154,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   onChange={handleChange}
                   placeholder="Min. 6 characters"
                   disabled={loading}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-black placeholder:text-black focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
                 <button
                   type="button"
@@ -169,7 +169,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
 
             {/* Confirm Password Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-black mb-2">
                 Confirm Password
               </label>
               <div className="relative">
@@ -181,7 +181,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }: SignUpProps) {
                   onChange={handleChange}
                   placeholder="Re-enter password"
                   disabled={loading}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg text-black placeholder:text-black focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all disabled:bg-gray-100"
                 />
                 <button
                   type="button"

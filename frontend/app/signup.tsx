@@ -2,17 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
@@ -41,6 +42,66 @@ export default function SignupScreen() {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [timeOfBirth, setTimeOfBirth] = useState('');
   const [location, setLocation] = useState('');
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+  const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
+  const [tempDay, setTempDay] = useState(new Date().getDate());
+  const [tempMonth, setTempMonth] = useState(new Date().getMonth() + 1);
+  const [tempYear, setTempYear] = useState(new Date().getFullYear());
+  const [tempHour, setTempHour] = useState(12);
+  const [tempMinute, setTempMinute] = useState(0);
+  const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('AM');
+
+  const getDaysInMonth = (month: number, year: number) => new Date(year, month, 0).getDate();
+
+  const parseDateString = (value: string) => {
+    const parts = value.split('/').map(Number);
+    if (parts.length !== 3) return new Date();
+    const [day, month, year] = parts;
+    return new Date(year, month - 1, day);
+  };
+
+  const parseTimeString = (value: string) => {
+    const match = value.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
+    if (!match) return new Date();
+    let hour = Number(match[1]);
+    const minute = Number(match[2]);
+    const period = match[3].toUpperCase();
+    if (hour === 12) hour = 0;
+    if (period === 'PM') hour += 12;
+    const date = new Date();
+    date.setHours(hour, minute, 0, 0);
+    return date;
+  };
+
+  const formatDateString = (day: number, month: number, year: number) =>
+    `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+
+  const formatTimeString = (hour: number, minute: number, period: 'AM' | 'PM') => {
+    const fixedHour = String(hour).padStart(2, '0');
+    const fixedMinute = String(minute).padStart(2, '0');
+    return `${fixedHour}:${fixedMinute} ${period}`;
+  };
+
+  const openDatePicker = () => {
+    const date = dateOfBirth ? parseDateString(dateOfBirth) : new Date();
+    setTempDay(date.getDate());
+    setTempMonth(date.getMonth() + 1);
+    setTempYear(date.getFullYear());
+    setIsDatePickerVisible(true);
+  };
+
+  const openTimePicker = () => {
+    const date = timeOfBirth ? parseTimeString(timeOfBirth) : new Date();
+    let hour = date.getHours();
+    const minute = date.getMinutes();
+    const period: 'AM' | 'PM' = hour >= 12 ? 'PM' : 'AM';
+    if (hour === 0) hour = 12;
+    else if (hour > 12) hour -= 12;
+    setTempHour(hour);
+    setTempMinute(minute);
+    setTempPeriod(period);
+    setIsTimePickerVisible(true);
+  };
 
   const validateForm = () => {
     if (!fullName.trim()) {
@@ -161,7 +222,7 @@ export default function SignupScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your full name"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#000"
                   value={fullName}
                   onChangeText={setFullName}
                   autoCapitalize="words"
@@ -174,7 +235,7 @@ export default function SignupScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your email"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#000"
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -188,7 +249,7 @@ export default function SignupScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your phone number"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#000"
                   value={phone}
                   onChangeText={setPhone}
                   keyboardType="phone-pad"
@@ -202,7 +263,7 @@ export default function SignupScreen() {
                   <TextInput
                     style={styles.passwordInput}
                     placeholder="Create password (min 6 characters)"
-                    placeholderTextColor="#999"
+                    placeholderTextColor="#000"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPassword}
@@ -214,7 +275,7 @@ export default function SignupScreen() {
                     <Ionicons
                       name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                       size={22}
-                      color="#999"
+                      color="#000"
                     />
                   </TouchableOpacity>
                 </View>
@@ -227,7 +288,7 @@ export default function SignupScreen() {
                   <TextInput
                     style={styles.passwordInput}
                     placeholder="Confirm your password"
-                    placeholderTextColor="#999"
+                    placeholderTextColor="#000"
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry={!showConfirmPassword}
@@ -239,7 +300,7 @@ export default function SignupScreen() {
                     <Ionicons
                       name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
                       size={22}
-                      color="#999"
+                      color="#000"
                     />
                   </TouchableOpacity>
                 </View>
@@ -277,26 +338,30 @@ export default function SignupScreen() {
               {/* Date of Birth */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Date of birth</Text>
-                <TextInput
+                <TouchableOpacity
                   style={styles.input}
-                  placeholder="DD/MM/YYYY"
-                  placeholderTextColor="#999"
-                  value={dateOfBirth}
-                  onChangeText={setDateOfBirth}
-                />
+                  activeOpacity={0.8}
+                  onPress={openDatePicker}
+                >
+                  <Text style={[styles.inputText, !dateOfBirth && styles.inputPlaceholder]}>
+                    {dateOfBirth || 'Select your date of birth'}
+                  </Text>
+                </TouchableOpacity>
                 <Text style={styles.inputHint}>Used for astrology & rituals</Text>
               </View>
 
               {/* Time of Birth */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Time of birth</Text>
-                <TextInput
+                <TouchableOpacity
                   style={styles.input}
-                  placeholder="HH:MM AM/PM (e.g., 10:30 AM)"
-                  placeholderTextColor="#999"
-                  value={timeOfBirth}
-                  onChangeText={setTimeOfBirth}
-                />
+                  activeOpacity={0.8}
+                  onPress={openTimePicker}
+                >
+                  <Text style={[styles.inputText, !timeOfBirth && styles.inputPlaceholder]}>
+                    {timeOfBirth || 'Select your time of birth'}
+                  </Text>
+                </TouchableOpacity>
                 <Text style={styles.inputHint}>Important for accurate birth chart calculations</Text>
               </View>
 
@@ -306,7 +371,7 @@ export default function SignupScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="City, Country"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="#000"
                   value={location}
                   onChangeText={setLocation}
                 />
@@ -314,6 +379,163 @@ export default function SignupScreen() {
               </View>
 
               {/* Sign Up Button */}
+              <Modal
+                visible={isDatePickerVisible}
+                animationType="fade"
+                transparent
+                onRequestClose={() => setIsDatePickerVisible(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Select date of birth</Text>
+                    <View style={styles.pickerRow}>
+                      <View style={styles.pickerColumn}>
+                        <Text style={styles.pickerLabel}>Day</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempDay((prev) => Math.max(prev - 1, 1))}
+                        >
+                          <Text style={styles.pickerButtonText}>–</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.pickerValue}>{tempDay}</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() =>
+                            setTempDay((prev) => Math.min(prev + 1, getDaysInMonth(tempMonth, tempYear)))
+                          }
+                        >
+                          <Text style={styles.pickerButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.pickerColumn}>
+                        <Text style={styles.pickerLabel}>Month</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempMonth((prev) => Math.max(prev - 1, 1))}
+                        >
+                          <Text style={styles.pickerButtonText}>–</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.pickerValue}>{tempMonth}</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempMonth((prev) => Math.min(prev + 1, 12))}
+                        >
+                          <Text style={styles.pickerButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.pickerColumn}>
+                        <Text style={styles.pickerLabel}>Year</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempYear((prev) => Math.max(prev - 1, 1900))}
+                        >
+                          <Text style={styles.pickerButtonText}>–</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.pickerValue}>{tempYear}</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempYear((prev) => Math.min(prev + 1, new Date().getFullYear()))}
+                        >
+                          <Text style={styles.pickerButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.pickerActions}>
+                      <TouchableOpacity
+                        style={[styles.pickerActionButton, styles.cancelButton]}
+                        onPress={() => setIsDatePickerVisible(false)}
+                      >
+                        <Text style={[styles.pickerActionText, styles.cancelText]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.pickerActionButton}
+                        onPress={() => {
+                          setDateOfBirth(formatDateString(tempDay, tempMonth, tempYear));
+                          setIsDatePickerVisible(false);
+                        }}
+                      >
+                        <Text style={styles.pickerActionText}>Set Date</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+
+              <Modal
+                visible={isTimePickerVisible}
+                animationType="fade"
+                transparent
+                onRequestClose={() => setIsTimePickerVisible(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Select time of birth</Text>
+                    <View style={styles.pickerRow}>
+                      <View style={styles.pickerColumn}>
+                        <Text style={styles.pickerLabel}>Hour</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempHour((prev) => (prev === 1 ? 12 : prev - 1))}
+                        >
+                          <Text style={styles.pickerButtonText}>–</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.pickerValue}>{tempHour}</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempHour((prev) => (prev === 12 ? 1 : prev + 1))}
+                        >
+                          <Text style={styles.pickerButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.pickerColumn}>
+                        <Text style={styles.pickerLabel}>Minute</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempMinute((prev) => (prev === 0 ? 59 : prev - 1))}
+                        >
+                          <Text style={styles.pickerButtonText}>–</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.pickerValue}>{String(tempMinute).padStart(2, '0')}</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempMinute((prev) => (prev === 59 ? 0 : prev + 1))}
+                        >
+                          <Text style={styles.pickerButtonText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={styles.pickerColumn}>
+                        <Text style={styles.pickerLabel}>AM/PM</Text>
+                        <TouchableOpacity
+                          style={styles.pickerButton}
+                          onPress={() => setTempPeriod((prev) => (prev === 'AM' ? 'PM' : 'AM'))}
+                        >
+                          <Text style={styles.pickerButtonText}>⇄</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.pickerValue}>{tempPeriod}</Text>
+                        <View style={{ height: 42, width: 42 }} />
+                      </View>
+                    </View>
+                    <View style={styles.pickerActions}>
+                      <TouchableOpacity
+                        style={[styles.pickerActionButton, styles.cancelButton]}
+                        onPress={() => setIsTimePickerVisible(false)}
+                      >
+                        <Text style={[styles.pickerActionText, styles.cancelText]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.pickerActionButton}
+                        onPress={() => {
+                          setTimeOfBirth(formatTimeString(tempHour, tempMinute, tempPeriod));
+                          setIsTimePickerVisible(false);
+                        }}
+                      >
+                        <Text style={styles.pickerActionText}>Set Time</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+
               <TouchableOpacity
                 style={[styles.signupButton, isLoading && styles.signupButtonDisabled]}
                 onPress={handleSignup}
@@ -372,7 +594,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#000',
   },
   placeholder: {
     width: 40,
@@ -405,7 +627,7 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#333',
+    color: '#000',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -431,7 +653,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#333',
+    color: '#000',
     marginBottom: 8,
     fontWeight: '500',
   },
@@ -441,7 +663,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#333',
+    color: '#000',
     borderWidth: 1,
     borderColor: '#E8E8E8',
   },
@@ -463,7 +685,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
-    color: '#333',
+    color: '#000',
   },
   eyeIcon: {
     paddingHorizontal: 12,
@@ -520,6 +742,93 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
+  },
+  inputText: {
+    fontSize: 15,
+    color: '#000',
+  },
+  inputPlaceholder: {
+    color: '#999',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  pickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  pickerLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 10,
+  },
+  pickerValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111',
+    marginVertical: 10,
+  },
+  pickerButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#F2F2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerButtonText: {
+    fontSize: 24,
+    color: '#111',
+  },
+  pickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  pickerActionButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: '#D4A574',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 4,
+  },
+  pickerActionText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  cancelButton: {
+    backgroundColor: '#F2F2F2',
+  },
+  cancelText: {
+    color: '#111',
   },
   loginLinkText: {
     fontSize: 14,
