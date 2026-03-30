@@ -1,11 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Star, Calendar, DollarSign, TrendingUp, Clock, 
-  Users, Phone, Video, MessageSquare, Settings,
-  CheckCircle, XCircle, AlertCircle, Edit2, Save, X
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  DollarSign,
+  Edit2, Save,
+  Settings,
+  Star,
+  TrendingUp,
+  X
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface AstrologerDashboardProps {
   astrologerName: string;
@@ -32,6 +38,7 @@ interface AstrologerProfile {
   bio?: string;
   email?: string;
   phone?: string;
+  pendingUpdates?: Partial<AstrologerProfile> | null;
 }
 
 interface Booking {
@@ -72,6 +79,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [editedProfile, setEditedProfile] = useState<Partial<AstrologerProfile>>({});
+  const [editedServices, setEditedServices] = useState<AstrologerProfile['services']>([]);
 
   useEffect(() => {
     fetchAstrologerData();
@@ -86,6 +94,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
       if (result.success && result.data.length > 0) {
         setProfile(result.data[0]);
         setEditedProfile(result.data[0]);
+        setEditedServices(result.data[0].services);
       }
     } catch (err) {
       console.error('Error fetching astrologer data:', err);
@@ -135,49 +144,70 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
     }
   };
 
-  const updateServicePrice = async (serviceIndex: number, newPrice: number) => {
+  const updateServicePrice = (serviceIndex: number, newPrice: number) => {
     if (!profile) return;
 
-    const updatedServices = [...profile.services];
-    updatedServices[serviceIndex].price = newPrice;
+    const baseServices = editedServices.length > 0 ? editedServices : profile.services;
+    const updatedServices = [...baseServices];
+    updatedServices[serviceIndex] = {
+      ...updatedServices[serviceIndex],
+      price: newPrice,
+    };
+    setEditedServices(updatedServices);
+  };
+
+  const savePricing = async () => {
+    if (!profile) return;
+    if (editedServices.length === 0) return;
 
     try {
-      const response = await fetch(`/api/astrologers/${profile._id}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/astrologers/pending`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ services: updatedServices }),
+        body: JSON.stringify({ astrologerId: profile._id, pendingUpdates: { services: editedServices } }),
       });
 
       const result = await response.json();
       if (result.success) {
         setProfile(result.data);
-        alert('Service price updated successfully');
+        setEditedServices(result.data.services);
+        alert('Pricing changes submitted for admin approval');
+      } else {
+        console.error('Error saving pricing:', result);
+        alert(result.message || 'Failed to submit pricing changes');
       }
     } catch (err) {
-      console.error('Error updating service price:', err);
-      alert('Failed to update service price');
+      console.error('Error saving pricing:', err);
+      alert('Failed to submit pricing changes');
     }
   };
+
+  const pricingHasChanges = profile
+    ? profile.services.some((service, idx) => editedServices[idx]?.price !== service.price)
+    : false;
 
   const saveProfile = async () => {
     if (!profile) return;
     
     try {
-      const response = await fetch(`/api/astrologers/${profile._id}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/astrologers/pending`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedProfile),
+        body: JSON.stringify({ astrologerId: profile._id, pendingUpdates: editedProfile }),
       });
 
       const result = await response.json();
       if (result.success) {
         setProfile(result.data);
         setEditMode(false);
-        alert('Profile updated successfully');
+        alert('Profile changes submitted for admin approval');
+      } else {
+        console.error('Error updating profile:', result);
+        alert(result.message || 'Failed to submit profile changes');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
-      alert('Failed to update profile');
+      alert('Failed to submit profile changes');
     }
   };
 
@@ -295,6 +325,14 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
         </div>
       </header>
 
+      {profile.pendingUpdates && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="rounded-xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-900">
+            Your recent changes have been submitted and are pending admin approval. They will be visible once an administrator approves them.
+          </div>
+        </div>
+      )}
+
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -392,7 +430,17 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
 
             {/* Service Packages with Price Editing */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Service Packages</h3>
+             
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Your Service Packages</h3>
+                <button
+                  onClick={savePricing}
+                  disabled={!pricingHasChanges}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${pricingHasChanges ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                >
+                  Save Pricing
+                </button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {profile.services.map((service, idx) => (
                   <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -420,9 +468,9 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
-                          value={service.price}
-                          onChange={(e) => updateServicePrice(idx, parseInt(e.target.value))}
-                          className="w-24 px-3 py-1 border border-gray-300 rounded-lg text-right font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={editedServices[idx]?.price ?? service.price}
+                          onChange={(e) => updateServicePrice(idx, parseInt(e.target.value, 10) || 0)}
+                          className="w-24 px-3 py-1 border border-gray-300 rounded-lg text-right font-bold text-black focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                         <span className="font-bold text-gray-900">₹</span>
                       </div>
@@ -655,7 +703,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
                     value={editMode ? editedProfile.name : profile.name}
                     onChange={(e) => setEditedProfile({ ...editedProfile, name: e.target.value })}
                     disabled={!editMode}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black disabled:bg-gray-50"
                   />
                 </div>
 
@@ -666,7 +714,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
                     value={editMode ? editedProfile.expertise : profile.expertise}
                     onChange={(e) => setEditedProfile({ ...editedProfile, expertise: e.target.value })}
                     disabled={!editMode}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black disabled:bg-gray-50"
                   />
                 </div>
 
@@ -677,7 +725,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
                     value={editMode ? editedProfile.experience : profile.experience}
                     onChange={(e) => setEditedProfile({ ...editedProfile, experience: e.target.value })}
                     disabled={!editMode}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black disabled:bg-gray-50"
                   />
                 </div>
 
@@ -688,7 +736,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
                     value={editMode ? editedProfile.languages?.join(', ') : profile.languages.join(', ')}
                     onChange={(e) => setEditedProfile({ ...editedProfile, languages: e.target.value.split(',').map(l => l.trim()) })}
                     disabled={!editMode}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black disabled:bg-gray-50"
                     placeholder="Hindi, English, Sanskrit"
                   />
                 </div>
@@ -700,7 +748,7 @@ export default function AstrologerDashboard({ astrologerName, onLogout }: Astrol
                     onChange={(e) => setEditedProfile({ ...editedProfile, bio: e.target.value })}
                     disabled={!editMode}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black disabled:bg-gray-50"
                     placeholder="Tell clients about yourself..."
                   />
                 </div>

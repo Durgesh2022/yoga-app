@@ -1,9 +1,15 @@
 'use client';
 
-import React from 'react';
-import { 
-  LayoutDashboard, Users, Star, Calendar, 
-  CreditCard, Settings, LogOut, Menu, X 
+import {
+    Calendar,
+    Clock,
+    CreditCard,
+    LayoutDashboard,
+    LogOut, Menu,
+    Settings,
+    Star,
+    Users,
+    X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,6 +32,7 @@ export default function Sidebar({
     { id: 'users', label: 'Users', icon: Users },
     { id: 'astrologers', label: 'Astrologers', icon: Star },
     { id: 'bookings', label: 'Bookings', icon: Calendar },
+    { id: 'pendingUpdates', label: 'Pending Updates', icon: Clock },
     { id: 'transactions', label: 'Transactions', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

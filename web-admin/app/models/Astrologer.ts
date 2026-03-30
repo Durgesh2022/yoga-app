@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 /* ============================
    Service Interface
@@ -27,6 +27,20 @@ export interface IAvailability {
   slots: ISlot[];
 }
 
+export interface IPendingUpdates {
+  name?: string;
+  expertise?: string;
+  experience?: string;
+  languages?: string[];
+  price?: number;
+  rating?: number;
+  reviews?: number;
+  available?: boolean;
+  services?: IService[];
+  availability?: IAvailability[];
+  bio?: string;
+}
+
 /* ============================
    Astrologer Interface
 ============================ */
@@ -41,6 +55,7 @@ export interface IAstrologer extends Document {
   available: boolean;
   services: IService[];
   availability: IAvailability[];
+  pendingUpdates?: IPendingUpdates | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -170,6 +185,10 @@ const AstrologerSchema = new Schema<IAstrologer>(
     availability: {
       type: [AvailabilitySchema],
       default: [],
+    },
+    pendingUpdates: {
+      type: Schema.Types.Mixed,
+      default: null,
     },
   },
   {

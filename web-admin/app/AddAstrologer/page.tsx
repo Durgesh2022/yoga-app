@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, Save, User, Star, Briefcase, Globe, DollarSign, Clock, Award } from 'lucide-react';
+import { Award, Clock, Globe, Save, Star, User, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface AddAstrologerFormProps {
   onClose: () => void;
   onSubmit: (astrologerData: AstrologerFormData) => void;
+  initialData?: Partial<AstrologerFormData>;
+  mode?: 'add' | 'edit';
 }
 interface SlotData {
   time: string;
@@ -62,32 +64,44 @@ const LANGUAGE_OPTIONS = [
   'Gujarati',
 ];
 
-export default function AddAstrologerForm({ onClose, onSubmit }: AddAstrologerFormProps) {
-  const [formData, setFormData] = useState<AstrologerFormData>({
-    name: '',
-    rating: 4.5,
-    reviews: 0,
-    expertise: '',
-    available: true,
-    price: 400,
-    languages: [],
-    experience: '',
-    services: [
-      { name: 'Aaramb', duration: '12 min', price: 99, description: 'Quick introduction call', tag: 'intro' },
-      { name: 'Sutra', duration: '20 min', price: 400, description: 'Get to know yourself', tag: '' },
-      { name: 'Yatra', duration: '40 min', price: 800, description: 'Detailed life analysis', tag: 'popular' },
-      { name: 'Vishwas', duration: '60 min', price: 1200, description: 'Complete horoscope reading', tag: '' },
-      { name: 'Anant', duration: '90 min', price: 1500, description: 'In-depth life path & future guidance', tag: '' },
-    ],
-    availability: [
+const defaultFormData: AstrologerFormData = {
+  name: '',
+  rating: 4.5,
+  reviews: 0,
+  expertise: '',
+  available: true,
+  price: 400,
+  languages: [],
+  experience: '',
+  services: [
+    { name: 'Aaramb', duration: '12 min', price: 99, description: 'Quick introduction call', tag: 'intro' },
+    { name: 'Sutra', duration: '20 min', price: 400, description: 'Get to know yourself', tag: '' },
+    { name: 'Yatra', duration: '40 min', price: 800, description: 'Detailed life analysis', tag: 'popular' },
+    { name: 'Vishwas', duration: '60 min', price: 1200, description: 'Complete horoscope reading', tag: '' },
+    { name: 'Anant', duration: '90 min', price: 1500, description: 'In-depth life path & future guidance', tag: '' },
+  ],
+  availability: [
     {
       date: '',
       slots: [{ time: '', isBooked: false }],
     },
   ],
+};
+
+export default function AddAstrologerForm({ onClose, onSubmit, initialData, mode = 'add' }: AddAstrologerFormProps) {
+  const [formData, setFormData] = useState<AstrologerFormData>({
+    ...defaultFormData,
+    ...(initialData || {}),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setFormData({
+      ...defaultFormData,
+      ...(initialData || {}),
+    });
+  }, [initialData]);
 
   const handleInputChange = (field: keyof AstrologerFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -154,7 +168,6 @@ export default function AddAstrologerForm({ onClose, onSubmit }: AddAstrologerFo
     e.preventDefault();
     if (validateForm()) {
       onSubmit(formData);
-      onClose();
     }
   };
   const handleDateChange = (index: number, value: string) => {
@@ -201,7 +214,9 @@ const removeDate = (index: number) => {
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
               <Star className="text-white" size={20} />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Add New Astrologer</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {mode === 'edit' ? 'Edit Astrologer' : 'Add New Astrologer'}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -536,7 +551,7 @@ const removeDate = (index: number) => {
             className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
           >
             <Save size={20} />
-            Save Astrologer
+            {mode === 'edit' ? 'Save Changes' : 'Save Astrologer'}
           </button>
         </div>
       </div>

@@ -1,13 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Users, Star, Home, DollarSign, TrendingUp, Calendar, 
-  Activity, CreditCard, Package, Phone, Clock 
+import {
+    Activity,
+    Calendar,
+    CreditCard,
+    DollarSign,
+    Package, Phone,
+    Star,
+    Users
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import AddAstrologerForm, { AstrologerFormData } from './AddAstrologer/page';
 import Navbar from './navbar';
 import Sidebar from './Sidebar';
-import AddAstrologerForm, { AstrologerFormData } from './AddAstrologer/page';
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -30,6 +35,7 @@ interface Astrologer {
     description: string;
     tag: 'intro' | 'popular' | '';
   }[];
+  pendingUpdates?: Record<string, any> | null;
 }
 
 interface User {
@@ -103,9 +109,11 @@ export default function Dashboard({ onLogout }: DashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showAddAstrologerForm, setShowAddAstrologerForm] = useState(false);
+  const [editingAstrologer, setEditingAstrologer] = useState<Astrologer | null>(null);
   
   // State for data
   const [astrologers, setAstrologers] = useState<Astrologer[]>([]);
+  const [pendingUpdates, setPendingUpdates] = useState<Astrologer[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -136,6 +144,9 @@ export default function Dashboard({ onLogout }: DashboardProps) {
         break;
       case 'transactions':
         fetchTransactions();
+        break;
+      case 'pendingUpdates':
+        fetchPendingUpdates();
         break;
     }
   }, [activeTab]);
@@ -200,6 +211,63 @@ export default function Dashboard({ onLogout }: DashboardProps) {
     }
   };
 
+  const mapAstrologerToFormData = (astrologer: Astrologer): AstrologerFormData => ({
+    name: astrologer.name,
+    rating: astrologer.rating,
+    reviews: astrologer.reviews,
+    expertise: astrologer.expertise,
+    available: astrologer.available,
+    price: astrologer.price,
+    languages: astrologer.languages,
+    experience: astrologer.experience,
+    services: astrologer.services,
+    availability: [
+      {
+        date: '',
+        slots: [{ time: '', isBooked: false }],
+      },
+    ],
+  });
+
+  const handleEditAstrologer = (astrologer: Astrologer) => {
+    setEditingAstrologer(astrologer);
+    setShowAddAstrologerForm(true);
+  };
+
+  const handleCloseAstrologerForm = () => {
+    setShowAddAstrologerForm(false);
+    setEditingAstrologer(null);
+  };
+
+  const handleUpdateAstrologer = async (astrologerData: AstrologerFormData) => {
+    if (!editingAstrologer) return;
+
+    try {
+      const response = await fetch(`/api/astrologers/${editingAstrologer._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(astrologerData),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setAstrologers(astrologers.map(a => a._id === editingAstrologer._id ? result.data : a));
+        setError(null);
+        setEditingAstrologer(null);
+        setShowAddAstrologerForm(false);
+      } else {
+        setError(result.error || 'Failed to update astrologer');
+        alert(result.message || 'Failed to update astrologer');
+      }
+    } catch (err) {
+      console.error('Error updating astrologer:', err);
+      setError('Failed to connect to the server');
+      alert('Failed to update astrologer');
+    }
+  };
+
   const fetchBookings = async () => {
     try {
       setLoading(prev => ({ ...prev, bookings: true }));
@@ -236,6 +304,78 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       setError('Failed to fetch transactions');
     } finally {
       setLoading(prev => ({ ...prev, transactions: false }));
+    }
+  };
+
+  const fetchPendingUpdates = async () => {
+    try {
+      setLoading(prev => ({ ...prev, pendingUpdates: true }));
+      const response = await fetch('/api/astrologers/pending', { cache: 'no-store' });
+      const result = await response.json();
+
+      if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+        setPendingUpdates(result.data);
+        setError(null);
+      } else {
+        // fallback: fetch all astrologers and filter by pendingUpdates
+        const fallbackResponse = await fetch('/api/astrologers', { cache: 'no-store' });
+        const fallbackResult = await fallbackResponse.json();
+
+        if (fallbackResult.success && Array.isArray(fallbackResult.data)) {
+          const filtered = fallbackResult.data.filter((astrologer: any) => astrologer.pendingUpdates !== undefined && astrologer.pendingUpdates !== null);
+          setPendingUpdates(filtered);
+          setError(filtered.length === 0 ? 'No pending updates found' : null);
+        } else {
+          const message = result.message || result.error || fallbackResult.message || fallbackResult.error || 'Failed to fetch pending updates';
+          setError(message);
+          setPendingUpdates([]);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching pending updates:', err);
+      setError('Failed to fetch pending updates');
+      setPendingUpdates([]);
+    } finally {
+      setLoading(prev => ({ ...prev, pendingUpdates: false }));
+    }
+  };
+
+  const handleApprovePendingUpdate = async (astrologerId: string) => {
+    try {
+      const response = await fetch(`/api/astrologers/pending/${astrologerId}`, {
+        method: 'PUT',
+      });
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || result.error || 'Unable to approve update');
+      }
+
+      setPendingUpdates(prev => prev.filter((item) => item._id !== astrologerId));
+      fetchAstrologers();
+      alert('Pending update approved successfully');
+    } catch (err) {
+      console.error('Error approving pending update:', err);
+      alert('Failed to approve pending update');
+    }
+  };
+
+  const handleRejectPendingUpdate = async (astrologerId: string) => {
+    try {
+      const response = await fetch(`/api/astrologers/pending/${astrologerId}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || result.error || 'Unable to reject update');
+      }
+
+      setPendingUpdates(prev => prev.filter((item) => item._id !== astrologerId));
+      alert('Pending update rejected successfully');
+    } catch (err) {
+      console.error('Error rejecting pending update:', err);
+      alert('Failed to reject pending update');
     }
   };
 
@@ -771,6 +911,79 @@ export default function Dashboard({ onLogout }: DashboardProps) {
             </div>
           )}
 
+          {/* PENDING UPDATES TAB */}
+          {activeTab === 'pendingUpdates' && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Pending Astrologer Updates</h3>
+                  <p className="text-sm text-gray-500">Review and approve changes submitted by astrologers before they go live.</p>
+                </div>
+                <button
+                  onClick={fetchPendingUpdates}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {loading.pendingUpdates ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : pendingUpdates.length === 0 ? (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-gray-500">
+                  No pending updates have been submitted yet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  {pendingUpdates.map((astrologer) => (
+                    <div key={astrologer._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900">{astrologer.name}</h4>
+                          <p className="text-sm text-gray-500">{astrologer.expertise}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${astrologer.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {astrologer.available ? 'Available' : 'Unavailable'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="rounded-xl bg-gray-50 p-4">
+                          <p className="text-sm font-semibold text-gray-900">Proposed changes</p>
+                          <div className="mt-3 space-y-2 text-sm text-gray-700">
+                            {astrologer.pendingUpdates && Object.entries(astrologer.pendingUpdates).map(([key, value]) => (
+                              <div key={key} className="flex flex-col gap-1">
+                                <span className="font-medium text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
+                                <span className="whitespace-pre-wrap text-gray-600">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                        <button
+                          onClick={() => handleApprovePendingUpdate(astrologer._id)}
+                          className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectPendingUpdate(astrologer._id)}
+                          className="w-full sm:w-auto px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ASTROLOGERS TAB */}
           {activeTab === 'astrologers' && (
             <div className="space-y-6">
@@ -873,7 +1086,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
                       </div>
 
                       <div className="flex gap-2">
-                        <button className="flex-1 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors font-medium text-sm">
+                        <button
+                          onClick={() => handleEditAstrologer(astrologer)}
+                          className="flex-1 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors font-medium text-sm"
+                        >
                           Edit
                         </button>
                         <button 
@@ -944,8 +1160,10 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       {/* Add Astrologer Form Modal */}
       {showAddAstrologerForm && (
         <AddAstrologerForm
-          onClose={() => setShowAddAstrologerForm(false)}
-          onSubmit={handleAddAstrologer}
+          onClose={handleCloseAstrologerForm}
+          onSubmit={editingAstrologer ? handleUpdateAstrologer : handleAddAstrologer}
+          initialData={editingAstrologer ? mapAstrologerToFormData(editingAstrologer) : undefined}
+          mode={editingAstrologer ? 'edit' : 'add'}
         />
       )}
     </div>
