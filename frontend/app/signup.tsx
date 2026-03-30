@@ -53,6 +53,9 @@ export default function SignupScreen() {
 
   const getDaysInMonth = (month: number, year: number) => new Date(year, month, 0).getDate();
 
+  const clampDayForMonthYear = (day: number, month: number, year: number) =>
+    Math.min(day, getDaysInMonth(month, year));
+
   const parseDateString = (value: string) => {
     const parts = value.split('/').map(Number);
     if (parts.length !== 3) return new Date();
@@ -84,9 +87,11 @@ export default function SignupScreen() {
 
   const openDatePicker = () => {
     const date = dateOfBirth ? parseDateString(dateOfBirth) : new Date();
-    setTempDay(date.getDate());
-    setTempMonth(date.getMonth() + 1);
-    setTempYear(date.getFullYear());
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    setTempDay(clampDayForMonthYear(date.getDate(), month, year));
+    setTempMonth(month);
+    setTempYear(year);
     setIsDatePickerVisible(true);
   };
 
@@ -178,7 +183,7 @@ export default function SignupScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
             {/* Header */}
             <View style={styles.header}>
@@ -411,14 +416,30 @@ export default function SignupScreen() {
                         <Text style={styles.pickerLabel}>Month</Text>
                         <TouchableOpacity
                           style={styles.pickerButton}
-                          onPress={() => setTempMonth((prev) => Math.max(prev - 1, 1))}
+                          onPress={() => {
+                            setTempMonth((prev) => {
+                              const nextMonth = Math.max(prev - 1, 1);
+                              setTempDay((currentDay) =>
+                                Math.min(currentDay, getDaysInMonth(nextMonth, tempYear))
+                              );
+                              return nextMonth;
+                            });
+                          }}
                         >
                           <Text style={styles.pickerButtonText}>–</Text>
                         </TouchableOpacity>
                         <Text style={styles.pickerValue}>{tempMonth}</Text>
                         <TouchableOpacity
                           style={styles.pickerButton}
-                          onPress={() => setTempMonth((prev) => Math.min(prev + 1, 12))}
+                          onPress={() => {
+                            setTempMonth((prev) => {
+                              const nextMonth = Math.min(prev + 1, 12);
+                              setTempDay((currentDay) =>
+                                Math.min(currentDay, getDaysInMonth(nextMonth, tempYear))
+                              );
+                              return nextMonth;
+                            });
+                          }}
                         >
                           <Text style={styles.pickerButtonText}>+</Text>
                         </TouchableOpacity>
@@ -427,14 +448,30 @@ export default function SignupScreen() {
                         <Text style={styles.pickerLabel}>Year</Text>
                         <TouchableOpacity
                           style={styles.pickerButton}
-                          onPress={() => setTempYear((prev) => Math.max(prev - 1, 1900))}
+                          onPress={() => {
+                            setTempYear((prev) => {
+                              const nextYear = Math.max(prev - 1, 1900);
+                              setTempDay((currentDay) =>
+                                Math.min(currentDay, getDaysInMonth(tempMonth, nextYear))
+                              );
+                              return nextYear;
+                            });
+                          }}
                         >
                           <Text style={styles.pickerButtonText}>–</Text>
                         </TouchableOpacity>
                         <Text style={styles.pickerValue}>{tempYear}</Text>
                         <TouchableOpacity
                           style={styles.pickerButton}
-                          onPress={() => setTempYear((prev) => Math.min(prev + 1, new Date().getFullYear()))}
+                          onPress={() => {
+                            setTempYear((prev) => {
+                              const nextYear = Math.min(prev + 1, new Date().getFullYear());
+                              setTempDay((currentDay) =>
+                                Math.min(currentDay, getDaysInMonth(tempMonth, nextYear))
+                              );
+                              return nextYear;
+                            });
+                          }}
                         >
                           <Text style={styles.pickerButtonText}>+</Text>
                         </TouchableOpacity>
@@ -450,7 +487,8 @@ export default function SignupScreen() {
                       <TouchableOpacity
                         style={styles.pickerActionButton}
                         onPress={() => {
-                          setDateOfBirth(formatDateString(tempDay, tempMonth, tempYear));
+                          const validDay = clampDayForMonthYear(tempDay, tempMonth, tempYear);
+                          setDateOfBirth(formatDateString(validDay, tempMonth, tempYear));
                           setIsDatePickerVisible(false);
                         }}
                       >
