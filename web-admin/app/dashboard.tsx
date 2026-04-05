@@ -777,81 +777,88 @@ export default function Dashboard({ onLogout }: DashboardProps) {
           )}
 
           {/* BOOKINGS TAB */}
-          {activeTab === 'bookings' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">All Bookings</h3>
-                <button 
-                  onClick={fetchBookings}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                >
-                  Refresh
-                </button>
-              </div>
+         {/* BOOKINGS TAB */}
+{activeTab === 'bookings' && (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h3 className="text-lg font-semibold text-gray-900">All Bookings</h3>
+      <button 
+        onClick={fetchBookings}
+        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+      >
+        Refresh
+      </button>
+    </div>
 
-              {loading.bookings ? (
-                <div className="text-center py-12">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                </div>
-              ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {bookings.map((booking: any) => (
-                          <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-700">
-                                {booking.booking_type}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900">
-                              {booking.service_name || booking.class_name || booking.package_name || 'Consultation'}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 font-mono">{booking.user_id.slice(0, 8)}...</td>
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                              {formatCurrency(booking.service_price || booking.price || 0)}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500">
-                              {booking.booking_date || new Date(booking.created_at).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(booking.status)}`}>
-                                {booking.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4">
-                              <select
-                                value={booking.status}
-                                onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value, booking.booking_type.toLowerCase().replace(' ', '_'))}
-                                className="text-sm border border-gray-300 rounded px-2 py-1"
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="paid">Paid</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                              </select>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+    {loading.bookings ? (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    ) : (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Astrologer</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {bookings.map((booking: any) => (
+                <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 text-xs font-medium rounded bg-purple-100 text-purple-700">
+                      {booking.booking_type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {booking.service_name || booking.class_name || booking.package_name || 'Consultation'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {booking.astrologer_name || '—'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 font-mono">{booking.user_id.slice(0, 8)}...</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {formatCurrency(booking.service_price || booking.price || 0)}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {booking.booking_date || new Date(booking.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(booking.status)}`}>
+                      {booking.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <select
+                      value={booking.status}
+                      onChange={(e) => handleUpdateBookingStatus(booking.id, e.target.value, booking.booking_type.toLowerCase().replace(' ', '_'))}
+                      className="text-sm border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
+           
 
           {/* TRANSACTIONS TAB */}
           {activeTab === 'transactions' && (
