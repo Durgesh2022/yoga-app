@@ -13,6 +13,8 @@ import { useEffect, useState } from 'react';
 import AddAstrologerForm, { AstrologerFormData } from './AddAstrologer/page';
 import Navbar from './navbar';
 import Sidebar from './Sidebar';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface DashboardProps {
   onLogout?: () => void;
@@ -540,6 +542,200 @@ export default function Dashboard({ onLogout }: DashboardProps) {
     }
   };
 
+  const handleDownloadBookingsPDF = () => {
+  const doc = new jsPDF({ orientation: 'landscape' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const now = new Date();
+  const generatedOn = now.toLocaleString('en-IN', {
+    year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+
+  // ── Header bar ──────────────────────────────────────────────
+  doc.setFillColor(79, 70, 229);
+  doc.rect(0, 0, pageWidth, 28, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Bookings Report', 14, 12);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated on: ${generatedOn}`, 14, 21);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(`Total Bookings: ${bookings.length}`, pageWidth - 14, 21, { align: 'right' });
+
+  // ── Summary strip ────────────────────────────────────────────
+  const paid      = bookings.filter(b => ['paid','completed'].includes(b.status?.toLowerCase())).length;
+  const pending   = bookings.filter(b => b.status?.toLowerCase() === 'pending').length;
+  const cancelled = bookings.filter(b => b.status?.toLowerCase() === 'cancelled').length;
+  const totalRev  = bookings.reduce((s, b: any) => s + (b.service_price || b.price || 0), 0);
+
+  doc.setFillColor(238, 242, 255); // indigo-50
+  doc.rect(0, 28, pageWidth, 16, 'F');
+
+  const summaryItems = [
+    { label: 'Completed/Paid', value: String(paid) },
+    { label: 'Pending',        value: String(pending) },
+    { label: 'Cancelled',      value: String(cancelled) },
+    { label: 'Total Revenue',  value: `Rs. ${totalRev.toLocaleString('en-IN')}` },
+  ];
+
+  summaryItems.forEach((item, i) => {
+    const x = 14 + i * 72;
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(item.label, x, 34);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 27, 75);
+    doc.text(item.value, x, 41);
+  });
+
+  // ── Table data ───────────────────────────────────────────────
+  const formatPrice = (b: any) => {
+    const amt = b.service_price || b.price || 0;
+    return `Rs. ${Number(amt).toLocaleString('en-IN')}`;
+  };
+
+  const formatBookingDate = (b: any) => {
+    const raw = b.booking_date || b.created_at;
+    if (!raw) return '—';
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? String(raw) : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const rows = bookings.map((b: any, idx) => [
+    idx + 1,                        // number — no string wrapping
+    b.booking_type || '—',
+    b.service_name || b.class_name || b.package_name || 'Consultation',
+    b.astrologer_name || '—',
+    b.user_id ? b.user_id.slice(0, 8) + '…' : '—',
+    formatPrice(b),
+    formatBookingDate(b),
+    (b.status || '—').charAt(0).toUpperCase() + (b.status || '').slice(1),
+  ]);
+
+  // Status colour helper
+  const statusColor = (val: string): [number,number,number] => {
+    const v = val.toLowerCase();
+    if (v === 'paid' || v === 'completed') return [21, 128, 61];
+    if (v === 'pending')                   return [161, 98, 7];
+    if (v === 'cancelled')                 return [185, 28, 28];
+    return [55, 65, 81];
+  };
+
+  const statusBg = (val: string): [number,number,number] => {
+    const v = val.toLowerCase();
+    if (v === 'paid' || v === 'completed') return [220, 252, 231];
+    if (v === 'pending')                   return [254, 243, 199];
+    if (v === 'cancelled')                 return [254, 226, 226];
+    return [243, 244, 246];
+  };
+
+  autoTable(doc, {
+    head: [['#', 'Type', 'Service / Package', 'Astrologer', 'User ID', 'Price', 'Date', 'Status']],
+    body: rows,
+    startY: 50,
+    margin: { left: 10, right: 10 },
+    tableWidth: 'auto',
+    styles: {
+      fontSize: 8.5,
+      cellPadding: { top: 5, bottom: 5, left: 4, right: 4 },
+      font: 'helvetica',
+      textColor: [31, 41, 55],
+      lineColor: [226, 232, 240],
+      lineWidth: 0.3,
+      overflow: 'linebreak',
+    },
+    headStyles: {
+      fillColor: [79, 70, 229],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 9,
+      halign: 'left',
+      cellPadding: { top: 6, bottom: 6, left: 4, right: 4 },
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    columnStyles: {
+      0: { cellWidth: 10,  halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 26 },
+      2: { cellWidth: 55 },
+      3: { cellWidth: 38 },
+      4: { cellWidth: 25, fontSize: 7.5, textColor: [100, 116, 139] },
+      5: { cellWidth: 30, halign: 'right', fontStyle: 'bold' },
+      6: { cellWidth: 28 },
+      7: { cellWidth: 26, halign: 'center' },
+    },
+    // Draw coloured pill for status — blank cell first, then draw
+    didDrawCell: (data) => {
+      if (data.section === 'body' && data.column.index === 7) {
+        const val = String(data.cell.raw || '');
+        const [tr, tg, tb] = statusColor(val);
+        const [br, bg, bb] = statusBg(val);
+
+        const x = data.cell.x + 2;
+        const y = data.cell.y + 2;
+        const w = data.cell.width - 4;
+        const h = data.cell.height - 4;
+
+        // Blank out default text
+        doc.setFillColor(data.row.index % 2 === 0 ? 255 : 248, data.row.index % 2 === 0 ? 255 : 250, data.row.index % 2 === 0 ? 255 : 252);
+        doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+
+        // Pill background
+        doc.setFillColor(br, bg, bb);
+        doc.roundedRect(x, y, w, h, 2, 2, 'F');
+
+        // Pill text
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(tr, tg, tb);
+        doc.text(val, data.cell.x + data.cell.width / 2, data.cell.y + data.cell.height / 2 + 2.5, { align: 'center' });
+
+        // Reset
+        doc.setTextColor(31, 41, 55);
+        doc.setFont('helvetica', 'normal');
+      }
+    },
+    didDrawPage: (data) => {
+      const totalPages = (doc as any).internal.getNumberOfPages();
+      const currentPage = (doc as any).internal.getCurrentPageInfo().pageNumber;
+
+      // Repeat header on subsequent pages
+      if (currentPage > 1) {
+        doc.setFillColor(79, 70, 229);
+        doc.rect(0, 0, pageWidth, 10, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.text('Bookings Report (continued)', 14, 7);
+      }
+
+      // Footer
+      doc.setDrawColor(226, 232, 240);
+      doc.line(10, doc.internal.pageSize.getHeight() - 12, pageWidth - 10, doc.internal.pageSize.getHeight() - 12);
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(156, 163, 175);
+      doc.text(
+        `Page ${currentPage} of ${totalPages}  •  Confidential  •  Generated ${generatedOn}`,
+        pageWidth / 2,
+        doc.internal.pageSize.getHeight() - 6,
+        { align: 'center' }
+      );
+    },
+  });
+
+  doc.save(`bookings-report-${now.toISOString().slice(0, 10)}.pdf`);
+};
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -780,15 +976,27 @@ export default function Dashboard({ onLogout }: DashboardProps) {
          {/* BOOKINGS TAB */}
 {activeTab === 'bookings' && (
   <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h3 className="text-lg font-semibold text-gray-900">All Bookings</h3>
-      <button 
-        onClick={fetchBookings}
-        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-      >
-        Refresh
-      </button>
-    </div>
+   <div className="flex flex-wrap justify-between items-center gap-3">
+  <h3 className="text-lg font-semibold text-gray-900">All Bookings</h3>
+  <div className="flex gap-3">
+    <button
+      onClick={handleDownloadBookingsPDF}
+      disabled={bookings.length === 0}
+      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-sm transition-all"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
+      </svg>
+      Download PDF
+    </button>
+    <button
+      onClick={fetchBookings}
+      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+    >
+      Refresh
+    </button>
+  </div>
+</div>
 
     {loading.bookings ? (
       <div className="text-center py-12">
