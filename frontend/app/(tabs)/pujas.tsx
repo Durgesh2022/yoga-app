@@ -1,54 +1,90 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { fonts, typography } from '../../constants/theme';
+import AnimatedPressable from '../../components/AnimatedPressable';
+import FloatingIcon from '../../components/FloatingIcon';
 
 export default function PujasScreen() {
+  const fadeIcon = useRef(new Animated.Value(0)).current;
+  const scaleIcon = useRef(new Animated.Value(0.8)).current;
+  const fadeContent = useRef(new Animated.Value(0)).current;
+  const translateContent = useRef(new Animated.Value(16)).current;
+
+  useEffect(() => {
+    const ease = Easing.bezier(0.16, 1, 0.3, 1);
+    Animated.stagger(140, [
+      Animated.parallel([
+        Animated.timing(fadeIcon, { toValue: 1, duration: 600, easing: ease, useNativeDriver: true }),
+        Animated.timing(scaleIcon, { toValue: 1, duration: 720, easing: ease, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeContent, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+        Animated.timing(translateContent, { toValue: 0, duration: 520, easing: ease, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, [fadeIcon, scaleIcon, fadeContent, translateContent]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
+          <Text style={styles.eyebrow}>Rituals</Text>
           <Text style={styles.title}>Pujas</Text>
           <Text style={styles.subtitle}>Sacred rituals for you</Text>
         </View>
 
         {/* Coming Soon Content */}
         <View style={styles.content}>
-          <LinearGradient
-            colors={['#FFF9F0', '#FFE8CC']}
-            style={styles.imageContainer}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <Animated.View style={{ opacity: fadeIcon, transform: [{ scale: scaleIcon }] }}>
+            <FloatingIcon amplitude={8} duration={2400} rotate>
+              <LinearGradient
+                colors={['#FFF9F0', '#FFE8CC']}
+                style={styles.imageContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="flame" size={80} color="#f6cf92" />
+              </LinearGradient>
+            </FloatingIcon>
+          </Animated.View>
+
+          <Animated.View
+            style={[
+              { alignItems: 'center', width: '100%' },
+              { opacity: fadeContent, transform: [{ translateY: translateContent }] },
+            ]}
           >
-            <Ionicons name="flame" size={80} color="#f6cf92" />
-          </LinearGradient>
+            <View style={styles.badge}>
+              <Ionicons name="time-outline" size={16} color="#f6cf92" />
+              <Text style={styles.badgeText}>Coming Soon</Text>
+            </View>
 
-          <View style={styles.badge}>
-            <Ionicons name="time-outline" size={16} color="#f6cf92" />
-            <Text style={styles.badgeText}>Coming Soon</Text>
-          </View>
+            <Text style={styles.comingSoonTitle}>Sacred Pujas Coming Soon</Text>
+            <Text style={styles.description}>
+              Discover personalized sacred rituals and pujas curated for your spiritual intentions. Connect with ancient traditions and find divine blessings.
+            </Text>
 
-          <Text style={styles.comingSoonTitle}>Sacred Pujas Coming Soon</Text>
-          <Text style={styles.description}>
-            Discover personalized sacred rituals and pujas curated for your spiritual intentions. Connect with ancient traditions and find divine blessings.
-          </Text>
+            <AnimatedPressable style={styles.notifyButton}>
+              <Ionicons name="notifications" size={18} color="#FFFFFF" />
+              <Text style={styles.notifyButtonText}>Notify me when available</Text>
+            </AnimatedPressable>
 
-          <TouchableOpacity style={styles.notifyButton}>
-            <Ionicons name="notifications" size={18} color="#FFFFFF" />
-            <Text style={styles.notifyButtonText}>Notify me when available</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.learnMoreButton}>
-            <Text style={styles.learnMoreText}>Learn more about Pujas</Text>
-            <Ionicons name="arrow-forward" size={16} color="#f6cf92" />
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.learnMoreButton}>
+              <Text style={styles.learnMoreText}>Learn more about Pujas</Text>
+              <Ionicons name="arrow-forward" size={16} color="#f6cf92" />
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </View>
     </SafeAreaView>
@@ -69,15 +105,22 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: '#FFFFFF',
   },
+  eyebrow: {
+    ...typography.overline,
+    color: '#C9956C',
+    marginBottom: 4,
+  },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
+    color: '#1F1B16',
+    letterSpacing: -0.4,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 2,
+    ...typography.body,
+    color: '#9A8F84',
+    marginTop: 4,
   },
   content: {
     flex: 1,
@@ -92,6 +135,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
+    shadowColor: '#D4A574',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 18,
+    elevation: 4,
   },
   badge: {
     flexDirection: 'row',
@@ -104,22 +152,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   badgeText: {
-    fontSize: 13,
-    fontWeight: '600',
+    ...typography.captionMedium,
+    fontFamily: fonts.sansSemiBold,
     color: '#f6cf92',
   },
   comingSoonTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 26,
+    lineHeight: 32,
+    color: '#1F1B16',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
+    letterSpacing: -0.4,
+    paddingHorizontal: 8,
   },
   description: {
-    fontSize: 15,
-    color: '#666',
+    ...typography.bodyLg,
+    color: '#7A7065',
     textAlign: 'center',
-    lineHeight: 22,
     marginBottom: 40,
   },
   notifyButton: {
@@ -133,11 +183,15 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 8,
     marginBottom: 12,
+    shadowColor: '#D4A574',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
   },
   notifyButtonText: {
+    ...typography.buttonLg,
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
   },
   learnMoreButton: {
     flexDirection: 'row',
@@ -147,8 +201,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   learnMoreText: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.button,
     color: '#f6cf92',
   },
 });

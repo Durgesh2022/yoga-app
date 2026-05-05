@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(curl -s -o /dev/null -w \"Status: %{http_code}\\\\nTime: %{time_total}s\\\\n\" \"https://yoga-app-5kkj.vercel.app/api/astrologers\" --max-time 15)",
+      "Bash(curl -s -o /dev/null -w \"Status: %{http_code}\\\\nTime: %{time_total}s\\\\n\" \"https://yoga-app-self.vercel.app/api/\" --max-time 15)",
+      "Bash(curl -s \"https://yoga-app-5kkj.vercel.app/api/astrologers\" --max-time 15)"
+    ]
+  }
+}

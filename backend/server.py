@@ -94,6 +94,8 @@ class UserCreate(BaseModel):
     date_of_birth: Optional[str] = None
     time_of_birth: Optional[str] = None
     location: Optional[str] = None
+    location_lat: Optional[float] = None
+    location_lon: Optional[float] = None
 
 class UserLogin(BaseModel):
     email: str
@@ -108,6 +110,8 @@ class UserResponse(BaseModel):
     date_of_birth: Optional[str] = None
     time_of_birth: Optional[str] = None
     location: Optional[str] = None
+    location_lat: Optional[float] = None
+    location_lon: Optional[float] = None
     created_at: datetime
     is_verified: bool = False
     wallet_balance: float = 0.0
@@ -122,6 +126,8 @@ class User(BaseModel):
     date_of_birth: Optional[str] = None
     time_of_birth: Optional[str] = None
     location: Optional[str] = None
+    location_lat: Optional[float] = None
+    location_lon: Optional[float] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     is_verified: bool = False
@@ -406,10 +412,12 @@ async def signup(user_data: UserCreate):
         date_of_birth=user_data.date_of_birth,
         time_of_birth=user_data.time_of_birth,
         location=user_data.location,
+        location_lat=user_data.location_lat,
+        location_lon=user_data.location_lon,
     )
-    
+
     await db.users.insert_one(user.dict())
-    
+
     return UserResponse(
         id=user.id,
         full_name=user.full_name,
@@ -419,6 +427,8 @@ async def signup(user_data: UserCreate):
         date_of_birth=user.date_of_birth,
         time_of_birth=user.time_of_birth,
         location=user.location,
+        location_lat=user.location_lat,
+        location_lon=user.location_lon,
         created_at=user.created_at,
         is_verified=user.is_verified,
         wallet_balance=user.wallet_balance,
@@ -447,6 +457,8 @@ async def login(credentials: UserLogin):
         date_of_birth=user.get("date_of_birth"),
         time_of_birth=user.get("time_of_birth"),
         location=user.get("location"),
+        location_lat=user.get("location_lat"),
+        location_lon=user.get("location_lon"),
         created_at=user["created_at"],
         is_verified=user.get("is_verified", False),
         wallet_balance=user.get("wallet_balance", 0.0),
@@ -457,10 +469,10 @@ async def login(credentials: UserLogin):
 async def get_user(user_id: str):
     """Get user by ID"""
     user = await db.users.find_one({"id": user_id})
-    
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return UserResponse(
         id=user["id"],
         full_name=user["full_name"],
@@ -470,6 +482,8 @@ async def get_user(user_id: str):
         date_of_birth=user.get("date_of_birth"),
         time_of_birth=user.get("time_of_birth"),
         location=user.get("location"),
+        location_lat=user.get("location_lat"),
+        location_lon=user.get("location_lon"),
         created_at=user["created_at"],
         is_verified=user.get("is_verified", False),
         wallet_balance=user.get("wallet_balance", 0.0),

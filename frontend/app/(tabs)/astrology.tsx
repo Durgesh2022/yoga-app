@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,19 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useUser } from '../../context/UserContext';
+import { fonts, typography } from '../../constants/theme';
+import AnimatedPressable from '../../components/AnimatedPressable';
+import PulsingDot from '../../components/PulsingDot';
+import FloatingIcon from '../../components/FloatingIcon';
+import StaggerItem from '../../components/StaggerItem';
 
 // Use full URL for Expo Go compatibility
 const API_URL = 'https://yoga-app-5kkj.vercel.app/api';
@@ -60,32 +67,77 @@ export default function AstrologyScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch astrologers from MongoDB
+  const fadeHeader = useRef(new Animated.Value(0)).current;
+  const translateHeader = useRef(new Animated.Value(-8)).current;
+  const fadeKundli = useRef(new Animated.Value(0)).current;
+  const scaleKundli = useRef(new Animated.Value(0.96)).current;
+  const fadeList = useRef(new Animated.Value(0)).current;
+  const translateList = useRef(new Animated.Value(16)).current;
+
   useEffect(() => {
     fetchAstrologers();
   }, []);
 
-  const fetchAstrologers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch(`${API_URL}/astrologers`);
-      const result = await response.json();
+  useEffect(() => {
+    const ease = Easing.bezier(0.16, 1, 0.3, 1);
+    Animated.stagger(120, [
+      Animated.parallel([
+        Animated.timing(fadeHeader, { toValue: 1, duration: 480, easing: ease, useNativeDriver: true }),
+        Animated.timing(translateHeader, { toValue: 0, duration: 480, easing: ease, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeKundli, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+        Animated.timing(scaleKundli, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeList, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+        Animated.timing(translateList, { toValue: 0, duration: 520, easing: ease, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, [fadeHeader, translateHeader, fadeKundli, scaleKundli, fadeList, translateList]);
 
-      if (result.success) {
-        setAstrologers(result.data);
-      } else {
-        setError(result.error || 'Failed to fetch astrologers');
-        Alert.alert('Error', result.error || 'Failed to fetch astrologers');
-      }
-    } catch (err: any) {
-      console.error('Error fetching astrologers:', err);
-      setError('Failed to connect to the server');
-      Alert.alert('Error', 'Failed to connect to the server. Please check if the backend is running.');
+  const fetchAstrologersOnce = async (timeoutMs: number) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(`${API_URL}/astrologers`, { signal: controller.signal });
+      const result = await response.json();
+      return result;
     } finally {
-      setLoading(false);
+      clearTimeout(timer);
     }
+  };
+
+  const fetchAstrologers = async () => {
+    setLoading(true);
+    setError(null);
+
+    let lastErr: any = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const result = await fetchAstrologersOnce(attempt === 1 ? 8000 : 25000);
+        if (result.success) {
+          setAstrologers(result.data);
+          setLoading(false);
+          return;
+        }
+        lastErr = new Error(result.error || 'Server returned no data');
+      } catch (err: any) {
+        lastErr = err;
+        console.warn(`[Astrologers] attempt ${attempt} failed:`, err?.message);
+      }
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+
+    console.error('Error fetching astrologers:', lastErr);
+    setError('Failed to connect to the server');
+    Alert.alert(
+      'Connection issue',
+      'Could not reach astrologer server. The server may be waking up — please tap retry in a few seconds.'
+    );
+    setLoading(false);
   };
 
   const handleFilterSelect = (filter: string) => {
@@ -150,19 +202,25 @@ export default function AstrologyScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View
+          style={[
+            styles.header,
+            { opacity: fadeHeader, transform: [{ translateY: translateHeader }] },
+          ]}
+        >
           <View>
-            <Text style={styles.greeting}>Hi, {user?.full_name?.split(' ')[0] || 'Guest'}</Text>
+            <Text style={styles.eyebrow}>Namaste</Text>
+            <Text style={styles.greeting}>{user?.full_name?.split(' ')[0] || 'Guest'}</Text>
             <Text style={styles.subGreeting}>Find your cosmic guidance</Text>
           </View>
-          <TouchableOpacity 
+          <AnimatedPressable
             style={styles.balanceContainer}
             onPress={() => router.push('/wallet')}
           >
-            <Ionicons name="wallet" size={18} color="#f6cf92" />
+            <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
             <Text style={styles.balanceText}>₹{user?.wallet_balance || 0}</Text>
-          </TouchableOpacity>
-        </View>
+          </AnimatedPressable>
+        </Animated.View>
 
         {/* Talk to Astrologer Section */}
         <View style={styles.section}>
@@ -236,32 +294,41 @@ export default function AstrologyScreen() {
           )}
 
           {/* Free Kundli Card */}
-          <LinearGradient
-            colors={['#FFF9F0', '#FFE8CC']}
-            style={styles.kundliCard}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.kundliContent}>
-              <View style={styles.kundliTextContainer}>
-                <Text style={styles.kundliTitle}>Free Kundli Now</Text>
-                <Text style={styles.kundliSubtitle}>
-                  Get your personalised birth chart in a minute.
-                </Text>
+          <Animated.View style={{ opacity: fadeKundli, transform: [{ scale: scaleKundli }] }}>
+            <LinearGradient
+              colors={['#FFF9F0', '#FFE8CC']}
+              style={styles.kundliCard}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View style={styles.kundliContent}>
+                <View style={styles.kundliTextContainer}>
+                  <Text style={styles.kundliTitle}>Free Kundli Now</Text>
+                  <Text style={styles.kundliSubtitle}>
+                    Get your personalised birth chart in a minute.
+                  </Text>
+                </View>
+                <FloatingIcon amplitude={5} duration={2200} rotate>
+                  <View style={styles.kundliIcon}>
+                    <Ionicons name="sparkles" size={40} color="#f6cf92" />
+                  </View>
+                </FloatingIcon>
               </View>
-              <View style={styles.kundliIcon}>
-                <Ionicons name="sparkles" size={40} color="#f6cf92" />
-              </View>
-            </View>
-            <TouchableOpacity style={styles.kundliButton}>
-              <Text style={styles.kundliButtonText}>Generate Now</Text>
-              <Ionicons name="arrow-forward" size={16} color="#f6cf92" />
-            </TouchableOpacity>
-          </LinearGradient>
+              <AnimatedPressable style={styles.kundliButton}>
+                <Text style={styles.kundliButtonText}>Generate Now</Text>
+                <Ionicons name="arrow-forward" size={16} color="#f6cf92" />
+              </AnimatedPressable>
+            </LinearGradient>
+          </Animated.View>
         </View>
 
         {/* Astrologers Grid */}
-        <View style={styles.astrologersSection}>
+        <Animated.View
+          style={[
+            styles.astrologersSection,
+            { opacity: fadeList, transform: [{ translateY: translateList }] },
+          ]}
+        >
           <View style={styles.astrologersTitleRow}>
             <Text style={styles.astrologersTitle}>Top Astrologers</Text>
             {!loading && (
@@ -300,44 +367,47 @@ export default function AstrologyScreen() {
           {/* Astrologers Grid */}
           {!loading && !error && filteredAstrologers.length > 0 && (
             <View style={styles.astrologersGrid}>
-              {filteredAstrologers.map((astrologer) => (
-                <TouchableOpacity 
-                  key={astrologer._id} 
-                  style={styles.astrologerCard} 
-                  activeOpacity={0.8}
-                  onPress={() => handleAstrologerPress(astrologer)}
+              {filteredAstrologers.map((astrologer, idx) => (
+                <StaggerItem
+                  key={astrologer._id}
+                  index={idx}
+                  step={70}
+                  translateY={18}
+                  style={styles.astrologerCardWrap}
                 >
-                  <View style={styles.astrologerHeader}>
-                    <View style={styles.astrologerAvatar}>
-                      <Ionicons name="person" size={32} color="#f6cf92" />
-                    </View>
-                    {astrologer.available && (
-                      <View style={styles.onlineBadge}>
-                        <View style={styles.onlineDot} />
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.astrologerName}>{astrologer.name}</Text>
-                  <View style={styles.ratingContainer}>
-                    <Ionicons name="star" size={14} color="#f6cf92" />
-                    <Text style={styles.ratingText}>{astrologer.rating}</Text>
-                    <Text style={styles.reviewsText}>({astrologer.reviews})</Text>
-                  </View>
-                  <Text style={styles.serviceText}>{astrologer.expertise}</Text>
-                  <Text style={styles.languageText}>{astrologer.languages.join(', ')}</Text>
-                  <Text style={styles.priceText}>From ₹{astrologer.price}/session</Text>
-                  <TouchableOpacity 
-                    style={styles.chatButton}
+                  <AnimatedPressable
+                    style={styles.astrologerCard}
                     onPress={() => handleAstrologerPress(astrologer)}
                   >
-                    <Ionicons name="chatbubble" size={14} color="#FFFFFF" />
-                    <Text style={styles.chatButtonText}>Chat Now</Text>
-                  </TouchableOpacity>
-                </TouchableOpacity>
+                    <View style={styles.astrologerHeader}>
+                      <View style={styles.astrologerAvatar}>
+                        <Ionicons name="person" size={32} color="#f6cf92" />
+                      </View>
+                      {astrologer.available && (
+                        <View style={styles.onlineBadge}>
+                          <PulsingDot color="#4ADE80" size={10} />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.astrologerName}>{astrologer.name}</Text>
+                    <View style={styles.ratingContainer}>
+                      <Ionicons name="star" size={14} color="#f6cf92" />
+                      <Text style={styles.ratingText}>{astrologer.rating}</Text>
+                      <Text style={styles.reviewsText}>({astrologer.reviews})</Text>
+                    </View>
+                    <Text style={styles.serviceText}>{astrologer.expertise}</Text>
+                    <Text style={styles.languageText}>{astrologer.languages.join(', ')}</Text>
+                    <Text style={styles.priceText}>From ₹{astrologer.price}/session</Text>
+                    <View style={styles.chatButton}>
+                      <Ionicons name="chatbubble" size={14} color="#FFFFFF" />
+                      <Text style={styles.chatButtonText}>Chat Now</Text>
+                    </View>
+                  </AnimatedPressable>
+                </StaggerItem>
               ))}
             </View>
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -360,29 +430,42 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: '#FFFFFF',
   },
+  eyebrow: {
+    ...typography.overline,
+    color: '#C9956C',
+    marginBottom: 4,
+  },
   greeting: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 28,
+    lineHeight: 34,
+    color: '#1F1B16',
+    letterSpacing: -0.4,
   },
   subGreeting: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 2,
+    ...typography.body,
+    color: '#9A8F84',
+    marginTop: 4,
   },
   balanceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF9F0',
+    backgroundColor: '#C9956C',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 24,
     gap: 8,
+    shadowColor: '#C9956C',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 5,
   },
   balanceText: {
+    fontFamily: fonts.sansBold,
     fontSize: 15,
-    fontWeight: '700',
-    color: '#f6cf92',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   section: {
     paddingHorizontal: 20,
@@ -392,14 +475,16 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 4,
+    fontFamily: fonts.display,
+    fontSize: 24,
+    lineHeight: 30,
+    color: '#1F1B16',
+    letterSpacing: -0.3,
+    marginBottom: 6,
   },
   sectionSubtitle: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.body,
+    color: '#7A7065',
     marginBottom: 20,
   },
   tabsScroll: {
@@ -426,8 +511,8 @@ const styles = StyleSheet.create({
     borderColor: '#f6cf92',
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...typography.button,
+    fontSize: 13,
     color: '#666',
   },
   activeTabText: {
@@ -457,9 +542,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   filterOptionsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    ...typography.h3,
+    color: '#1F1B16',
   },
   filterOptions: {
     flexDirection: 'row',
@@ -479,12 +563,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f6cf92',
   },
   filterOptionText: {
+    ...typography.captionMedium,
     fontSize: 13,
     color: '#666',
   },
   filterOptionTextActive: {
+    fontFamily: fonts.sansSemiBold,
     color: '#FFF',
-    fontWeight: '600',
   },
   kundliCard: {
     borderRadius: 20,
@@ -500,15 +585,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   kundliTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
     marginBottom: 6,
   },
   kundliSubtitle: {
+    ...typography.body,
     fontSize: 13,
-    color: '#666',
-    lineHeight: 18,
+    color: '#7A7065',
   },
   kundliIcon: {
     width: 60,
@@ -528,8 +615,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   kundliButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
+    ...typography.button,
     color: '#f6cf92',
   },
   astrologersSection: {
@@ -544,13 +630,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   astrologersTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   astrologersCount: {
-    fontSize: 13,
-    color: '#999',
+    ...typography.captionMedium,
+    fontSize: 12,
+    color: '#9A8F84',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -558,9 +647,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
+    ...typography.body,
     marginTop: 12,
-    fontSize: 14,
-    color: '#666',
+    color: '#7A7065',
   },
   errorContainer: {
     alignItems: 'center',
@@ -568,8 +657,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
+    ...typography.body,
     marginTop: 12,
-    fontSize: 14,
     color: '#EF4444',
     textAlign: 'center',
     paddingHorizontal: 20,
@@ -582,8 +671,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
+    ...typography.button,
     fontSize: 14,
-    fontWeight: '600',
     color: '#FFF',
   },
   emptyContainer: {
@@ -592,23 +681,24 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
+    ...typography.h3,
     marginTop: 12,
-    fontSize: 16,
-    fontWeight: '600',
     color: '#666',
   },
   emptySubText: {
+    ...typography.body,
     marginTop: 4,
-    fontSize: 14,
-    color: '#999',
+    color: '#9A8F84',
   },
   astrologersGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
   },
-  astrologerCard: {
+  astrologerCardWrap: {
     width: '48%',
+  },
+  astrologerCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
@@ -631,26 +721,22 @@ const styles = StyleSheet.create({
   onlineBadge: {
     position: 'absolute',
     top: 0,
-    right: '30%',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    right: '28%',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  onlineDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#4ADE80',
-  },
   astrologerName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.serif,
+    fontSize: 17,
+    lineHeight: 22,
+    color: '#1F1B16',
     textAlign: 'center',
     marginBottom: 6,
+    letterSpacing: -0.1,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -660,32 +746,37 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   ratingText: {
+    fontFamily: fonts.sansSemiBold,
     fontSize: 13,
     color: '#333',
-    fontWeight: '600',
   },
   reviewsText: {
+    fontFamily: fonts.sans,
     fontSize: 12,
-    color: '#999',
+    color: '#9A8F84',
   },
   serviceText: {
+    fontFamily: fonts.sans,
     fontSize: 12,
-    color: '#666',
+    color: '#7A7065',
     textAlign: 'center',
     marginBottom: 2,
   },
   languageText: {
+    fontFamily: fonts.sans,
     fontSize: 11,
-    color: '#999',
+    color: '#9A8F84',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: 0.2,
   },
   priceText: {
+    fontFamily: fonts.sansSemiBold,
     fontSize: 12,
-    color: '#f6cf92',
+    color: '#C9956C',
     textAlign: 'center',
-    fontWeight: '600',
     marginBottom: 12,
+    letterSpacing: 0.2,
   },
   chatButton: {
     flexDirection: 'row',
@@ -697,8 +788,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   chatButtonText: {
+    ...typography.button,
     fontSize: 13,
-    fontWeight: '600',
     color: '#FFFFFF',
   },
 });

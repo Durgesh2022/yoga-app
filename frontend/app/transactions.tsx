@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fonts } from '../constants/theme';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL 
   ? `${process.env.EXPO_PUBLIC_BACKEND_URL}` 
@@ -452,9 +453,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   placeholder: {
     width: 40,
@@ -553,9 +556,11 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   balanceAmount: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 30,
+    lineHeight: 34,
     color: '#f6cf92',
+    letterSpacing: -0.5,
   },
   emptyState: {
     alignItems: 'center',

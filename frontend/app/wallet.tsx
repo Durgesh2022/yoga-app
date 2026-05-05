@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../context/UserContext';
+import { fonts, typography } from '../constants/theme';
 
 // Only import WebView on native platforms
 let WebView: any = null;
@@ -756,9 +757,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   scrollView: {
     flex: 1,
@@ -776,10 +779,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   balanceAmount: {
-    fontSize: 36,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 40,
+    lineHeight: 46,
     color: '#f6cf92',
     marginBottom: 16,
+    letterSpacing: -1,
   },
   balanceActions: {
     flexDirection: 'row',
@@ -819,9 +824,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   bookingTitle: {
+    fontFamily: fonts.serif,
     fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   bookingDetails: {
     flexDirection: 'row',
@@ -835,9 +842,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bookingAmountText: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 26,
+    lineHeight: 30,
     color: '#f6cf92',
+    letterSpacing: -0.4,
   },
   payNowButton: {
     backgroundColor: '#f6cf92',
@@ -846,8 +855,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   payNowText: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.buttonLg,
     color: '#FFF',
   },
   viewYogaButton: {
@@ -857,8 +865,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   viewYogaText: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.buttonLg,
     color: '#FFF',
   },
   buttonDisabled: {
@@ -868,10 +875,12 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 20,
+    lineHeight: 26,
+    color: '#1F1B16',
     marginBottom: 16,
+    letterSpacing: -0.2,
   },
   amountGrid: {
     flexDirection: 'row',
@@ -976,8 +985,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addBalanceText: {
-    fontSize: 16,
-    fontWeight: '700',
+    ...typography.buttonLg,
     color: '#FFF',
   },
   securityNote: {
@@ -1042,11 +1050,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 24,
+    lineHeight: 30,
+    color: '#1F1B16',
     marginBottom: 12,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   modalMessage: {
     fontSize: 14,

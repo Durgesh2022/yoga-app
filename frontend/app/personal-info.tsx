@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUser } from '../context/UserContext';
+import { fonts } from '../constants/theme';
 
 export default function PersonalInfoScreen() {
   const router = useRouter();
@@ -202,9 +203,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   placeholder: {
     width: 40,

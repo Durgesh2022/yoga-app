@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../context/UserContext';
+import { fonts } from '../constants/theme';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api` : 'https://yoga-app-self.vercel.app/api';
 
@@ -277,9 +278,11 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2D2A26',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   headerSubtitle: {
     fontSize: 13,
@@ -391,9 +394,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   totalPrice: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#2D2A26',
+    fontFamily: fonts.display,
+    fontSize: 34,
+    lineHeight: 40,
+    color: '#1F1B16',
+    letterSpacing: -0.6,
   },
   freeTag: {
     backgroundColor: '#E8F5E8',

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +15,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import BookingModal from '@/components/BookingModal';
 import PackageConfirmModal from '@/components/PackageConfirmModal';
+import AnimatedPressable from '../../components/AnimatedPressable';
+import StaggerItem from '../../components/StaggerItem';
+import { fonts, typography } from '../../constants/theme';
+import { useUser } from '../../context/UserContext';
+
+const YOGA_TABS = ['Classes', 'Pricing', 'Consultation'] as const;
 
 // Helper function to get next 4 days including today
 const getNext4Days = () => {
@@ -128,6 +136,7 @@ const PRIVATE_SESSIONS = [
 
 export default function YogaScreen() {
   const router = useRouter();
+  const { user } = useUser();
   const [selectedTab, setSelectedTab] = useState('Classes');
   const [selectedDate, setSelectedDate] = useState(DATES[0]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -141,6 +150,29 @@ export default function YogaScreen() {
   // Consultation form states
   const [selectedGoal, setSelectedGoal] = useState('');
   const [selectedIntensity, setSelectedIntensity] = useState('Balanced');
+
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const translateIn = useRef(new Animated.Value(12)).current;
+  const tabIndicator = useRef(new Animated.Value(0)).current;
+  const [tabsWidth, setTabsWidth] = useState(0);
+
+  useEffect(() => {
+    const ease = Easing.bezier(0.16, 1, 0.3, 1);
+    Animated.parallel([
+      Animated.timing(fadeIn, { toValue: 1, duration: 480, easing: ease, useNativeDriver: true }),
+      Animated.timing(translateIn, { toValue: 0, duration: 480, easing: ease, useNativeDriver: true }),
+    ]).start();
+  }, [fadeIn, translateIn]);
+
+  useEffect(() => {
+    const idx = YOGA_TABS.indexOf(selectedTab as any);
+    Animated.spring(tabIndicator, {
+      toValue: idx >= 0 ? idx : 0,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 6,
+    }).start();
+  }, [selectedTab, tabIndicator]);
 
   const handleBookClass = (yogaClass: typeof YOGA_CLASSES[0]) => {
     setSelectedClass(yogaClass);
@@ -175,44 +207,42 @@ export default function YogaScreen() {
       </ScrollView>
 
       <ScrollView style={styles.classesScroll} showsVerticalScrollIndicator={false}>
-        {YOGA_CLASSES.map((yogaClass) => (
-          <View key={yogaClass.id} style={styles.classCard}>
-            <LinearGradient
-              colors={['#FFF9F0', '#FFE8CC']}
-              style={styles.classIcon}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Ionicons name="body" size={28} color="#f6cf92" />
-            </LinearGradient>
-            <View style={styles.classInfo}>
-              <View style={styles.classHeader}>
-                <Text style={styles.className}>{yogaClass.name}</Text>
-                <View style={styles.levelBadge}>
-                  <Text style={styles.levelText}>{yogaClass.level}</Text>
+        {YOGA_CLASSES.map((yogaClass, idx) => (
+          <StaggerItem key={yogaClass.id} index={idx} step={80} translateY={16}>
+            <AnimatedPressable style={styles.classCard} onPress={() => handleBookClass(yogaClass)}>
+              <LinearGradient
+                colors={['#FFF9F0', '#FFE8CC']}
+                style={styles.classIcon}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="body" size={28} color="#f6cf92" />
+              </LinearGradient>
+              <View style={styles.classInfo}>
+                <View style={styles.classHeader}>
+                  <Text style={styles.className}>{yogaClass.name}</Text>
+                  <View style={styles.levelBadge}>
+                    <Text style={styles.levelText}>{yogaClass.level}</Text>
+                  </View>
+                </View>
+                <Text style={styles.classTime}>{yogaClass.time}</Text>
+                <View style={styles.classFooter}>
+                  <View style={styles.guruContainer}>
+                    <Ionicons name="person-circle-outline" size={16} color="#666" />
+                    <Text style={styles.classGuru}>{yogaClass.guru}</Text>
+                  </View>
+                  <View style={styles.creditsInfo}>
+                    <Ionicons name="star" size={14} color="#f6cf92" />
+                    <Text style={styles.classCredits}>{yogaClass.credits} credit</Text>
+                  </View>
                 </View>
               </View>
-              <Text style={styles.classTime}>{yogaClass.time}</Text>
-              <View style={styles.classFooter}>
-                <View style={styles.guruContainer}>
-                  <Ionicons name="person-circle-outline" size={16} color="#666" />
-                  <Text style={styles.classGuru}>{yogaClass.guru}</Text>
-                </View>
-                <View style={styles.creditsInfo}>
-                  <Ionicons name="star" size={14} color="#f6cf92" />
-                  <Text style={styles.classCredits}>{yogaClass.credits} credit</Text>
-                </View>
+              <View style={styles.bookButton}>
+                <Text style={styles.bookButtonText}>Book</Text>
+                <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
               </View>
-            </View>
-            <TouchableOpacity
-              style={styles.bookButton}
-              onPress={() => handleBookClass(yogaClass)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.bookButtonText}>Book</Text>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+            </AnimatedPressable>
+          </StaggerItem>
         ))}
       </ScrollView>
     </>
@@ -472,23 +502,53 @@ export default function YogaScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View
+          style={[
+            styles.header,
+            { opacity: fadeIn, transform: [{ translateY: translateIn }] },
+          ]}
+        >
           <View>
+            <Text style={styles.eyebrow}>Practice</Text>
             <Text style={styles.title}>Yoga</Text>
             <Text style={styles.subtitle}>Find your inner peace</Text>
           </View>
-          <View style={styles.creditsContainer}>
-            <Ionicons name="star" size={16} color="#f6cf92" />
-            <Text style={styles.creditsText}>Credits: {userCredits}</Text>
-          </View>
-        </View>
+          <AnimatedPressable
+            style={styles.balanceContainer}
+            onPress={() => router.push('/wallet')}
+          >
+            <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.balanceText}>₹{user?.wallet_balance || 0}</Text>
+          </AnimatedPressable>
+        </Animated.View>
 
         {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          {['Classes', 'Pricing', 'Consultation'].map((tab) => (
+        <View
+          style={styles.tabsContainer}
+          onLayout={(e) => setTabsWidth(e.nativeEvent.layout.width - 40)}
+        >
+          {tabsWidth > 0 && (
+            <Animated.View
+              style={[
+                styles.tabPill,
+                {
+                  width: tabsWidth / YOGA_TABS.length,
+                  transform: [
+                    {
+                      translateX: tabIndicator.interpolate({
+                        inputRange: [0, YOGA_TABS.length - 1],
+                        outputRange: [0, (tabsWidth / YOGA_TABS.length) * (YOGA_TABS.length - 1)],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          )}
+          {YOGA_TABS.map((tab) => (
             <TouchableOpacity
               key={tab}
-              style={[styles.tab, selectedTab === tab && styles.activeTab]}
+              style={styles.tab}
               onPress={() => setSelectedTab(tab)}
               activeOpacity={0.7}
             >
@@ -545,15 +605,22 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: '#FFFFFF',
   },
+  eyebrow: {
+    ...typography.overline,
+    color: '#C9956C',
+    marginBottom: 4,
+  },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
+    color: '#1F1B16',
+    letterSpacing: -0.4,
   },
   subtitle: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 2,
+    ...typography.body,
+    color: '#9A8F84',
+    marginTop: 4,
   },
   creditsContainer: {
     flexDirection: 'row',
@@ -565,33 +632,64 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   creditsText: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontFamily: fonts.sansBold,
+    fontSize: 13,
     color: '#f6cf92',
+    letterSpacing: 0.2,
+  },
+  balanceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#C9956C',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    gap: 8,
+    shadowColor: '#C9956C',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  balanceText: {
+    fontFamily: fonts.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingTop: 16,
-    gap: 10,
     backgroundColor: '#FFFFFF',
     paddingBottom: 16,
+    position: 'relative',
   },
-  tab: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+  tabPill: {
+    position: 'absolute',
+    left: 20,
+    top: 16,
+    bottom: 16,
     borderRadius: 24,
-    backgroundColor: '#F5F5F5',
-  },
-  activeTab: {
     backgroundColor: '#f6cf92',
   },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTab: {
+    backgroundColor: 'transparent',
+  },
   tabText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...typography.button,
+    fontSize: 13,
     color: '#666',
   },
   activeTabText: {
+    fontFamily: fonts.sansSemiBold,
     color: '#FFFFFF',
   },
   dateScroll: {
@@ -616,11 +714,12 @@ const styles = StyleSheet.create({
     borderColor: '#f6cf92',
   },
   dateText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...typography.button,
+    fontSize: 13,
     color: '#666',
   },
   activeDateText: {
+    fontFamily: fonts.sansSemiBold,
     color: '#f6cf92',
   },
   classesScroll: {
@@ -656,9 +755,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   className: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.serif,
+    fontSize: 17,
+    lineHeight: 22,
+    color: '#1F1B16',
+    letterSpacing: -0.1,
   },
   levelBadge: {
     backgroundColor: '#F0F0F0',
@@ -667,13 +768,15 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   levelText: {
+    fontFamily: fonts.sansSemiBold,
     fontSize: 10,
-    fontWeight: '600',
     color: '#666',
+    letterSpacing: 0.4,
   },
   classTime: {
+    ...typography.body,
     fontSize: 13,
-    color: '#666',
+    color: '#7A7065',
     marginBottom: 8,
   },
   classFooter: {
@@ -687,6 +790,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   classGuru: {
+    fontFamily: fonts.sans,
     fontSize: 12,
     color: '#666',
   },
@@ -696,9 +800,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   classCredits: {
+    fontFamily: fonts.sansSemiBold,
     fontSize: 12,
     color: '#666',
-    fontWeight: '600',
   },
   bookButton: {
     flexDirection: 'row',
@@ -710,9 +814,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   bookButtonText: {
+    ...typography.button,
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
   },
   pricingContainer: {
     flex: 1,
@@ -736,13 +839,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9F0',
   },
   sidebarOptionText: {
+    fontFamily: fonts.sansMedium,
     fontSize: 14,
-    fontWeight: '500',
     color: '#666',
   },
   sidebarOptionTextActive: {
+    fontFamily: fonts.sansBold,
     color: '#f6cf92',
-    fontWeight: '700',
   },
   pricingScroll: {
     flex: 1,
@@ -757,9 +860,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   creditInfo: {
-    fontSize: 14,
+    fontFamily: fonts.sansMedium,
+    fontSize: 13,
     color: '#666',
-    fontWeight: '500',
   },
   pricingCard: {
     backgroundColor: '#FFFFFF',
@@ -781,9 +884,10 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   discountText: {
+    fontFamily: fonts.sansBold,
     fontSize: 11,
-    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.4,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -792,10 +896,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   packageName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
     flex: 1,
+    letterSpacing: -0.2,
   },
   freeBadge: {
     backgroundColor: '#4ADE80',
@@ -804,17 +910,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   freeText: {
+    fontFamily: fonts.sansBold,
     fontSize: 11,
-    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.6,
   },
   sectionHeading: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#666',
+    ...typography.overline,
+    color: '#9A8F84',
     marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   priceSection: {
     marginBottom: 16,
@@ -824,9 +928,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   packagePrice: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#f6cf92',
+    fontFamily: fonts.display,
+    fontSize: 28,
+    lineHeight: 32,
+    color: '#C9956C',
+    letterSpacing: -0.5,
   },
   creditSection: {
     marginBottom: 16,
@@ -842,8 +948,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   creditPackText: {
+    fontFamily: fonts.sansSemiBold,
     fontSize: 12,
-    fontWeight: '600',
     color: '#f6cf92',
   },
   validitySection: {
@@ -861,23 +967,23 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   detailText: {
+    ...typography.body,
     fontSize: 13,
     color: '#666',
   },
   packageDesc: {
+    ...typography.body,
     fontSize: 13,
-    color: '#666',
-    lineHeight: 19,
+    color: '#7A7065',
   },
   buyButton: {
     backgroundColor: '#f6cf92',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
   buyButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    ...typography.buttonLg,
     color: '#FFFFFF',
   },
   consultationScroll: {
@@ -894,24 +1000,27 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
   },
   consultationTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
-    marginBottom: 8,
+    fontFamily: fonts.display,
+    fontSize: 20,
+    lineHeight: 26,
+    color: '#1F1B16',
+    marginBottom: 10,
+    letterSpacing: -0.2,
   },
   consultationDesc: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
+    ...typography.body,
+    color: '#7A7065',
   },
   questionSection: {
     marginBottom: 24,
   },
   questionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.serif,
+    fontSize: 17,
+    lineHeight: 22,
+    color: '#1F1B16',
     marginBottom: 12,
+    letterSpacing: -0.1,
   },
   optionsGrid: {
     flexDirection: 'row',
@@ -944,11 +1053,12 @@ const styles = StyleSheet.create({
     borderColor: '#f6cf92',
   },
   optionText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontFamily: fonts.sansMedium,
+    fontSize: 13,
     color: '#666',
   },
   selectedOptionText: {
+    fontFamily: fonts.sansSemiBold,
     color: '#FFFFFF',
   },
   expertSection: {
@@ -976,13 +1086,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   expertTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.serif,
+    fontSize: 17,
+    lineHeight: 22,
+    color: '#1F1B16',
+    letterSpacing: -0.1,
   },
   expertDesc: {
+    ...typography.body,
     fontSize: 13,
-    color: '#666',
+    color: '#7A7065',
   },
   connectButton: {
     backgroundColor: '#FFFFFF',
@@ -991,8 +1104,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   connectButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    ...typography.buttonLg,
     color: '#f6cf92',
   },
   skipButton: {
@@ -1001,8 +1113,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   skipButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...typography.button,
     color: '#f6cf92',
   },
 });

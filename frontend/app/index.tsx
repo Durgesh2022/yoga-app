@@ -1,12 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Animated,
+    Easing,
     Image,
     KeyboardAvoidingView,
     Platform,
+    Pressable,
     ScrollView,
     StyleSheet,
     Text,
@@ -16,6 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
+import { fonts, typography } from '../constants/theme';
 
 // Use full URL for Expo Go compatibility
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api` : 'https://yoga-app-self.vercel.app/api';
@@ -28,11 +32,40 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const fadeLogo = useRef(new Animated.Value(0)).current;
+  const fadeWelcome = useRef(new Animated.Value(0)).current;
+  const fadeForm = useRef(new Animated.Value(0)).current;
+  const translateLogo = useRef(new Animated.Value(-12)).current;
+  const translateWelcome = useRef(new Animated.Value(16)).current;
+  const translateForm = useRef(new Animated.Value(20)).current;
+  const loginScale = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     if (!isLoading && user) {
       router.replace('/(tabs)/astrology');
     }
   }, [isLoading, user, router]);
+
+  useEffect(() => {
+    const ease = Easing.bezier(0.16, 1, 0.3, 1);
+    Animated.stagger(120, [
+      Animated.parallel([
+        Animated.timing(fadeLogo, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+        Animated.timing(translateLogo, { toValue: 0, duration: 520, easing: ease, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeWelcome, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+        Animated.timing(translateWelcome, { toValue: 0, duration: 520, easing: ease, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeForm, { toValue: 1, duration: 520, easing: ease, useNativeDriver: true }),
+        Animated.timing(translateForm, { toValue: 0, duration: 520, easing: ease, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, [fadeLogo, fadeWelcome, fadeForm, translateLogo, translateWelcome, translateForm]);
+
+  const pressIn = () => Animated.spring(loginScale, { toValue: 0.97, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
+  const pressOut = () => Animated.spring(loginScale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
 
   const handleLogin = async () => {
     if (!email.trim()) {
@@ -63,10 +96,7 @@ export default function LoginScreen() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // Save user data to context
       setUser(data);
-      
-      // Login successful - navigate to main app
       router.replace('/(tabs)/astrology');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Login failed');
@@ -76,7 +106,6 @@ export default function LoginScreen() {
   };
 
   const handleQuickLogin = () => {
-    // Quick login for testing - bypasses authentication
     router.replace('/(tabs)/astrology');
   };
 
@@ -102,15 +131,18 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.backButton} />
               <Text style={styles.headerTitle}>Login</Text>
               <View style={styles.placeholder} />
             </View>
 
-            {/* Logo Section */}
-            <View style={styles.logoContainer}>
+            <Animated.View
+              style={[
+                styles.logoContainer,
+                { opacity: fadeLogo, transform: [{ translateY: translateLogo }] },
+              ]}
+            >
               <View style={styles.logoCircle}>
                 <Image
                   source={require('@/assets/images/logo.png')}
@@ -118,19 +150,26 @@ export default function LoginScreen() {
                   resizeMode="contain"
                 />
               </View>
-            </View>
+            </Animated.View>
 
-            {/* Welcome Text */}
-            <View style={styles.welcomeContainer}>
+            <Animated.View
+              style={[
+                styles.welcomeContainer,
+                { opacity: fadeWelcome, transform: [{ translateY: translateWelcome }] },
+              ]}
+            >
               <Text style={styles.welcomeTitle}>Your journey to heal starts here</Text>
               <Text style={styles.welcomeSubtitle}>
                 Align your energy with the stars through astrology, yoga and reiki all in one calm space.
               </Text>
-            </View>
+            </Animated.View>
 
-            {/* Form */}
-            <View style={styles.formContainer}>
-              {/* Email Input */}
+            <Animated.View
+              style={[
+                styles.formContainer,
+                { opacity: fadeForm, transform: [{ translateY: translateForm }] },
+              ]}
+            >
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email</Text>
                 <TextInput
@@ -144,7 +183,6 @@ export default function LoginScreen() {
                 />
               </View>
 
-              {/* Password Input */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Password</Text>
                 <View style={styles.passwordContainer}>
@@ -156,34 +194,35 @@ export default function LoginScreen() {
                     value={password}
                     onChangeText={setPassword}
                   />
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.eyeIcon}
                     onPress={() => setShowPassword(!showPassword)}
                   >
-                    <Ionicons 
-                      name={showPassword ? 'eye-outline' : 'eye-off-outline'} 
-                      size={22} 
-                      color="#000" 
+                    <Ionicons
+                      name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                      size={22}
+                      color="#000"
                     />
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Login Button */}
-              <TouchableOpacity
-                style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
-                onPress={handleLogin}
-                activeOpacity={0.8}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.loginButtonText}>Login</Text>
-                )}
-              </TouchableOpacity>
+              <Animated.View style={{ transform: [{ scale: loginScale }] }}>
+                <Pressable
+                  style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
+                  onPress={handleLogin}
+                  onPressIn={pressIn}
+                  onPressOut={pressOut}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Login</Text>
+                  )}
+                </Pressable>
+              </Animated.View>
 
-              {/* Sign Up Button */}
               <TouchableOpacity
                 style={styles.signupButton}
                 onPress={() => router.push('/signup')}
@@ -192,19 +231,17 @@ export default function LoginScreen() {
                 <Text style={styles.signupButtonText}>Sign up</Text>
               </TouchableOpacity>
 
-              {/* Quick Access (for testing) */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.quickAccessButton}
                 onPress={handleQuickLogin}
               >
                 <Text style={styles.quickAccessText}>Continue as Guest</Text>
               </TouchableOpacity>
 
-              {/* Forgot Password */}
               <TouchableOpacity style={styles.forgotPasswordContainer}>
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -236,8 +273,7 @@ const styles = StyleSheet.create({
     height: 40,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    ...typography.h3,
     color: '#333',
   },
   placeholder: {
@@ -269,18 +305,18 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   welcomeTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: fonts.display,
+    fontSize: 26,
+    lineHeight: 34,
+    color: '#1F1B16',
     textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 30,
+    marginBottom: 10,
+    letterSpacing: -0.3,
   },
   welcomeSubtitle: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.body,
+    color: '#7A7065',
     textAlign: 'center',
-    lineHeight: 20,
     paddingHorizontal: 8,
   },
   formContainer: {
@@ -290,20 +326,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputLabel: {
-    fontSize: 14,
+    ...typography.captionMedium,
+    fontSize: 13,
     color: '#333',
     marginBottom: 8,
-    fontWeight: '500',
   },
   input: {
     backgroundColor: '#F8F8F8',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 15,
     color: '#000',
     borderWidth: 1,
     borderColor: '#E8E8E8',
+    fontFamily: fonts.sans,
+    fontSize: 15,
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -317,8 +354,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 15,
     color: '#000',
+    fontFamily: fonts.sans,
+    fontSize: 15,
   },
   eyeIcon: {
     paddingHorizontal: 12,
@@ -340,9 +378,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
+    ...typography.buttonLg,
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
   },
   signupButton: {
     backgroundColor: 'transparent',
@@ -353,9 +390,8 @@ const styles = StyleSheet.create({
     borderColor: '#D4A574',
   },
   signupButtonText: {
+    ...typography.button,
     color: '#D4A574',
-    fontSize: 16,
-    fontWeight: '600',
   },
   quickAccessButton: {
     alignItems: 'center',
@@ -363,19 +399,19 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   quickAccessText: {
-    fontSize: 14,
+    ...typography.bodyMedium,
+    fontSize: 13,
     color: '#666',
-    fontWeight: '500',
     textDecorationLine: 'underline',
+    letterSpacing: 0.3,
   },
   forgotPasswordContainer: {
     alignItems: 'center',
     marginTop: 8,
   },
   forgotPasswordText: {
-    fontSize: 14,
+    ...typography.bodyMedium,
     color: '#D4A574',
-    fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,
@@ -383,8 +419,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
+    ...typography.body,
     marginTop: 12,
-    fontSize: 14,
     color: '#666',
   },
 });

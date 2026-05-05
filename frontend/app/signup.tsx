@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
+import { fonts, typography } from '../constants/theme';
 
 // Use full URL for Expo Go compatibility
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL ? `${process.env.EXPO_PUBLIC_BACKEND_URL}/api` : 'https://yoga-app-self.vercel.app/api';
@@ -42,6 +43,12 @@ export default function SignupScreen() {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [timeOfBirth, setTimeOfBirth] = useState('');
   const [location, setLocation] = useState('');
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLon, setLocationLon] = useState<number | null>(null);
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const locationDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
   const [tempDay, setTempDay] = useState(new Date().getDate());
@@ -50,6 +57,65 @@ export default function SignupScreen() {
   const [tempHour, setTempHour] = useState(12);
   const [tempMinute, setTempMinute] = useState(0);
   const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('AM');
+
+  const fetchLocationSuggestions = async (query: string) => {
+    if (query.trim().length < 3) {
+      setLocationSuggestions([]);
+      return;
+    }
+    setLocationLoading(true);
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        query
+      )}&format=json&addressdetails=1&limit=5`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'CelestialYogaApp/1.0',
+          'Accept-Language': 'en',
+        },
+      });
+      const data = await response.json();
+      setLocationSuggestions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setLocationSuggestions([]);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  const handleLocationChange = (text: string) => {
+    setLocation(text);
+    setLocationLat(null);
+    setLocationLon(null);
+    setShowSuggestions(true);
+    if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current);
+    locationDebounceRef.current = setTimeout(() => {
+      fetchLocationSuggestions(text);
+    }, 400);
+  };
+
+  const formatSuggestionLabel = (item: any) => {
+    const addr = item.address || {};
+    const city =
+      addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || addr.county || '';
+    const state = addr.state || '';
+    const country = addr.country || '';
+    return [city, state, country].filter(Boolean).join(', ') || item.display_name;
+  };
+
+  const selectLocationSuggestion = (item: any) => {
+    setLocation(formatSuggestionLabel(item));
+    setLocationLat(parseFloat(item.lat));
+    setLocationLon(parseFloat(item.lon));
+    setLocationSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current);
+    };
+  }, []);
 
   const getDaysInMonth = (month: number, year: number) => new Date(year, month, 0).getDate();
 
@@ -141,34 +207,56 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
+      const payload: Record<string, any> = {
+        full_name: fullName,
+        email: email,
+        phone: phone,
+        password: password,
+        gender: gender || null,
+        date_of_birth: dateOfBirth || null,
+        time_of_birth: timeOfBirth || null,
+        location: location || null,
+      };
+      if (locationLat !== null && locationLon !== null) {
+        payload.location_lat = locationLat;
+        payload.location_lon = locationLon;
+      }
+
+      console.log('[Signup] POST', `${API_URL}/auth/signup`, payload);
+
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          full_name: fullName,
-          email: email,
-          phone: phone,
-          password: password,
-          gender: gender || null,
-          date_of_birth: dateOfBirth || null,
-          time_of_birth: timeOfBirth || null,
-          location: location || null,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const rawText = await response.text();
+      console.log('[Signup] response', response.status, rawText);
 
-      if (!response.ok) {
-        throw new Error(data.detail || 'Signup failed');
+      let data: any = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = { detail: rawText };
       }
 
-      // Save user data to context and navigate to app
+      if (!response.ok) {
+        const detail =
+          typeof data.detail === 'string'
+            ? data.detail
+            : Array.isArray(data.detail)
+              ? data.detail.map((d: any) => `${d.loc?.join('.')}: ${d.msg}`).join('\n')
+              : `Server error ${response.status}`;
+        throw new Error(detail);
+      }
+
       setUser(data);
       router.replace('/(tabs)/astrology');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create account');
+      console.error('[Signup] error', error);
+      Alert.alert('Signup failed', error.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
@@ -373,14 +461,58 @@ export default function SignupScreen() {
               {/* Location */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Location</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="City, Country"
-                  placeholderTextColor="#000"
-                  value={location}
-                  onChangeText={setLocation}
-                />
-                <Text style={styles.inputHint}>For accurate charts & puja timings</Text>
+                <View style={styles.locationInputWrapper}>
+                  <Ionicons
+                    name="location-outline"
+                    size={18}
+                    color="#9A8F84"
+                    style={styles.locationIcon}
+                  />
+                  <TextInput
+                    style={styles.locationInput}
+                    placeholder="Start typing your city..."
+                    placeholderTextColor="#999"
+                    value={location}
+                    onChangeText={handleLocationChange}
+                    onFocus={() => location.length >= 3 && setShowSuggestions(true)}
+                    autoCorrect={false}
+                  />
+                  {locationLoading ? (
+                    <ActivityIndicator size="small" color="#C9956C" style={styles.locationTrailing} />
+                  ) : locationLat !== null ? (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#4CAF50"
+                      style={styles.locationTrailing}
+                    />
+                  ) : null}
+                </View>
+                {showSuggestions && locationSuggestions.length > 0 && (
+                  <View style={styles.suggestionsList}>
+                    {locationSuggestions.map((item, idx) => (
+                      <TouchableOpacity
+                        key={`${item.place_id}-${idx}`}
+                        style={[
+                          styles.suggestionItem,
+                          idx === locationSuggestions.length - 1 && styles.suggestionItemLast,
+                        ]}
+                        onPress={() => selectLocationSuggestion(item)}
+                        activeOpacity={0.6}
+                      >
+                        <Ionicons name="location-sharp" size={16} color="#C9956C" />
+                        <Text style={styles.suggestionText} numberOfLines={2}>
+                          {formatSuggestionLabel(item)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                <Text style={styles.inputHint}>
+                  {locationLat !== null
+                    ? `Pinned: ${locationLat.toFixed(4)}, ${locationLon?.toFixed(4)}`
+                    : 'For accurate charts & puja timings'}
+                </Text>
               </View>
 
               {/* Sign Up Button */}
@@ -630,9 +762,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   placeholder: {
     width: 40,
@@ -663,27 +797,26 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   welcomeTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
+    fontFamily: fonts.display,
+    fontSize: 26,
+    lineHeight: 32,
+    color: '#1F1B16',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
+    letterSpacing: -0.3,
   },
   welcomeSubtitle: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.body,
+    color: '#7A7065',
     textAlign: 'center',
-    lineHeight: 20,
     paddingHorizontal: 8,
   },
   formContainer: {
     width: '100%',
   },
   sectionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#999',
-    letterSpacing: 0.5,
+    ...typography.overline,
+    color: '#9A8F84',
     marginBottom: 16,
   },
   inputContainer: {
@@ -709,6 +842,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     marginTop: 6,
+  },
+  locationInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    paddingHorizontal: 12,
+  },
+  locationIcon: {
+    marginRight: 8,
+  },
+  locationInput: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#000',
+  },
+  locationTrailing: {
+    marginLeft: 8,
+  },
+  suggestionsList: {
+    marginTop: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  suggestionItemLast: {
+    borderBottomWidth: 0,
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1F1B16',
   },
   passwordContainer: {
     flexDirection: 'row',
@@ -771,9 +955,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   signupButtonText: {
+    ...typography.buttonLg,
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
   },
   loginLinkContainer: {
     flexDirection: 'row',
@@ -806,11 +989,13 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
     marginBottom: 16,
     textAlign: 'center',
+    letterSpacing: -0.2,
   },
   pickerRow: {
     flexDirection: 'row',
@@ -828,10 +1013,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   pickerValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111',
+    fontFamily: fonts.display,
+    fontSize: 26,
+    lineHeight: 30,
+    color: '#1F1B16',
     marginVertical: 10,
+    letterSpacing: -0.3,
   },
   pickerButton: {
     width: 46,

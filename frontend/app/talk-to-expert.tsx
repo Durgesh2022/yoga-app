@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { fonts } from '../constants/theme';
 
 const CONNECTION_METHODS = [
   { id: 'text', label: 'Text + voice notes' },
@@ -249,9 +250,11 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2D2A26',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   headerSubtitle: {
     fontSize: 13,
@@ -283,10 +286,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   infoTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#2D2A26',
-    marginBottom: 8,
+    fontFamily: fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1F1B16',
+    marginBottom: 10,
+    letterSpacing: -0.3,
   },
   infoDesc: {
     fontSize: 14,

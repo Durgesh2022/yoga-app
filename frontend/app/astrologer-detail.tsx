@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useUser } from '../context/UserContext';
+import { fonts, typography } from '../constants/theme';
 
 // API Configuration - Update this with your actual backend URL
 const API_URL = 'https://yoga-app-5kkj.vercel.app/api';
@@ -522,9 +523,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
+    fontFamily: fonts.serif,
+    fontSize: 19,
+    lineHeight: 24,
+    color: '#1F1B16',
+    letterSpacing: -0.2,
   },
   profileSection: {
     flexDirection: 'row',
@@ -551,10 +554,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   astrologerName: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#000',
+    fontFamily: fonts.display,
+    fontSize: 24,
+    lineHeight: 30,
+    color: '#1F1B16',
     marginBottom: 12,
+    letterSpacing: -0.3,
   },
   infoRow: {
     flexDirection: 'row',
@@ -579,22 +584,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   guaranteeTitle: {
+    fontFamily: fonts.sansBold,
     fontSize: 15,
-    fontWeight: '700',
     color: '#2D7A2D',
     marginBottom: 2,
+    letterSpacing: -0.1,
   },
   guaranteeSubtitle: {
-    fontSize: 12,
+    ...typography.caption,
     color: '#4ADE80',
   },
   servicesSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
+    fontFamily: fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1F1B16',
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 12,
+    letterSpacing: -0.2,
   },
   serviceItem: {
     flexDirection: 'row',
@@ -613,10 +621,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   serviceName: {
+    fontFamily: fonts.serif,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
+    lineHeight: 24,
+    color: '#1F1B16',
     marginRight: 8,
+    letterSpacing: -0.1,
   },
   introTag: {
     backgroundColor: '#60A5FA',
@@ -653,10 +663,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   servicePrice: {
+    fontFamily: fonts.sansBold,
     fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
+    color: '#1F1B16',
     marginBottom: 8,
+    letterSpacing: -0.2,
   },
   addButton: {
     width: 36,
@@ -687,16 +698,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontFamily: fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1F1B16',
+    letterSpacing: -0.3,
   },
   sectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    ...typography.captionMedium,
     color: '#666',
     marginTop: 16,
     marginBottom: 12,
+    fontSize: 13,
   },
   summaryBox: {
     flexDirection: 'row',
