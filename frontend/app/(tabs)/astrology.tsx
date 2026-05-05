@@ -331,9 +331,24 @@ export default function AstrologyScreen() {
         >
           <View style={styles.astrologersTitleRow}>
             <Text style={styles.astrologersTitle}>Top Astrologers</Text>
-            {!loading && (
-              <Text style={styles.astrologersCount}>{filteredAstrologers.length} found</Text>
-            )}
+            <View style={styles.astrologersRightRow}>
+              {!loading && (
+                <Text style={styles.astrologersCount}>{filteredAstrologers.length} found</Text>
+              )}
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={fetchAstrologers}
+                disabled={loading}
+                activeOpacity={0.7}
+                accessibilityLabel="Refresh astrologers"
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#C9956C" />
+                ) : (
+                  <Ionicons name="refresh" size={18} color="#C9956C" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Loading State */}
@@ -640,6 +655,19 @@ const styles = StyleSheet.create({
     ...typography.captionMedium,
     fontSize: 12,
     color: '#9A8F84',
+  },
+  astrologersRightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  refreshButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FFF5EB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingContainer: {
     alignItems: 'center',
