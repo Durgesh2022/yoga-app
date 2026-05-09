@@ -211,7 +211,7 @@ export default function AstrologyScreen() {
           <View>
             <Text style={styles.eyebrow}>Namaste</Text>
             <Text style={styles.greeting}>{user?.full_name?.split(' ')[0] || 'Guest'}</Text>
-            <Text style={styles.subGreeting}>Find your cosmic guidance</Text>
+            <Text style={styles.subGreeting}>Welcome In, Let's decide together</Text>
           </View>
           <AnimatedPressable
             style={styles.balanceContainer}
