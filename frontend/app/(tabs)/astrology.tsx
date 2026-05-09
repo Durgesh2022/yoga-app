@@ -47,7 +47,7 @@ interface Astrologer {
 
 const FILTER_OPTIONS = {
   Pricing: ['Low to High', 'High to Low'],
-  Language: ['Hindi', 'English', 'Sanskrit', 'Tamil', 'Punjabi'],
+  Language: ['Hindi', 'English', 'Tamil', 'Punjabi'],
   Availability: ['Available Now', 'All'],
   Expertise: ['Vedic Astrology', 'Tarot & Palmistry', 'Numerology', 'Horoscope Reading'],
 };
@@ -55,11 +55,11 @@ const FILTER_OPTIONS = {
 export default function AstrologyScreen() {
   const router = useRouter();
   const { user } = useUser();
-  const [selectedFilter, setSelectedFilter] = useState('Pricing');
+  const [selectedFilter, setSelectedFilter] = useState('');
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({
-    Pricing: 'Low to High',
+    Pricing: '',
     Language: '',
-    Availability: 'All',
+    Availability: '',
     Expertise: '',
   });
   const [showFilterOptions, setShowFilterOptions] = useState(false);
